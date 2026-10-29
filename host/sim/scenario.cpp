@@ -354,6 +354,31 @@ void s_self_acceleration(Bench& b, Report& r) {
   r.note(fmt("true abnormal heat at the trip %.2f W per cell", b.pack.cell[0].abnormal_heat_w()));
 }
 
+void s_load_defect(Bench& b, Report& r) {
+  // A defect that adds 60 mOhm to cell 2 (a damaged tab or a weak cell), with heat that grows
+  // as the cell warms. Its heat stops when the current stops, so acting early protects the cell.
+  for (CellTruth& c : b.pack.cell) c.soc = 0.85;
+  b.run(90);
+  b.pack.load_a = 3.0;
+  b.run(60);
+  CellTruth& c = b.pack.cell[1];
+  c.defect_ohm = 0.060;
+  c.defect_growth_c = 6.0;
+  c.defect_ref_c = c.t_core;
+  const double t0 = b.t();
+  b.run_until(20 * 60, [&] { return latched(b); });
+  const double t_trip = b.t() - t0;
+  const double t_at_trip = c.t_surf;
+  double hottest_after = t_at_trip;
+  b.run_until(10 * 60, [&] { hottest_after = std::max(hottest_after, c.t_surf); return false; });
+  expect_trip(b, r, TripCode::PredictiveRisk, bms::kBranchBoth);
+  r.expect(t_trip < 300, fmt("trip %.0f s after the defect appeared", t_trip));
+  r.expect(t_at_trip < 35.0, fmt("cell 2 at %.1f C when the load was cut", t_at_trip));
+  r.expect(hottest_after < t_at_trip + 1.5 && c.t_surf < t_at_trip,
+           fmt("with the current cut, cell 2 peaked at %.1f C and cooled to %.1f C", hottest_after,
+               c.t_surf));
+}
+
 void s_soft_short(Bench& b, Report& r) {
   for (CellTruth& c : b.pack.cell) c.soc = soc_of_ocv(3.70);
   b.run(31 * 60);   // at rest long enough for the voltages to settle
@@ -680,6 +705,8 @@ const std::vector<Scenario> kScenarios = {
      s_cell_outlier, 8, ModelMode::Fitted},
     {"self_acceleration", "11", "heat growing with temperature in every cell: self-acceleration trip",
      s_self_acceleration, 9, ModelMode::Fitted},
+    {"load_defect", "11", "a cell defect heating under 3 A: trips below 35 C, then the cell cools",
+     s_load_defect, 30, ModelMode::Fitted},
     {"soft_short", "11", "47 Ohm across cell 2: leak, heat and confirmation agree; Warning",
      s_soft_short, 10, ModelMode::Fitted},
     {"internal_leak", "11", "25 mA internal leak: found electrically, Watch only", s_internal_leak,

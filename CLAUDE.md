@@ -26,7 +26,9 @@ designed: the prototype is modules on perfboard.
   through `firmware/main/shared.*`.
 - **Tests before every commit:**
   `cmake -S host -B build/host && cmake --build build/host && ctest --test-dir build/host`,
-  `.venv/bin/python -m unittest discover -s tools/tests`, and `idf.py build` in `firmware/`
+  `.venv/bin/python -m unittest discover -s tools/tests`, and `idf.py build` in `firmware/`. After a
+  change to the boards, the figures or the dashboard, rebuild the build guide
+  (`python3 docs/build-guide/build_guide.py`) and look at the pages before committing
   (ESP-IDF environment: `export IDF_TOOLS_PATH=$PWD/.tools/espressif && . .tools/esp-idf/export.sh`).
   Firmware changes must build without warnings.
 - **Git:** commit to `main`. Messages are short and plain (`firmware: ...`, `docs: ...`). **No
@@ -57,3 +59,4 @@ designed: the prototype is modules on perfboard.
 | `dashboard/index.html` | the dashboard, embedded in the firmware and served by `tools/sim_server.py` |
 | `tools/` | calibration, thermal fit, OCV table, serial logger, simulator server; tests in `tools/tests/` |
 | `docs/` | `wiring.md`, `firmware.md`, `bring-up.md`, `simulator.md`, `gate-records.md`, `architecture/` |
+| `docs/build-guide/` | `boards.py` (both perfboards as checked data), `figures.py`, `build_guide.py` (HTML and PDF), `snapshots.py` (browser pictures of the demonstrations) |

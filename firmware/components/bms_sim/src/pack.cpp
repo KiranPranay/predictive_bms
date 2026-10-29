@@ -73,6 +73,12 @@ double CellTruth::abnormal_heat_w() const {
   return heat_w;
 }
 
+double CellTruth::defect_heat_w(double i) const {
+  if (defect_ohm <= 0.0) return 0.0;
+  const double g = defect_growth_c > 0.0 ? std::exp((t_core - defect_ref_c) / defect_growth_c) : 1.0;
+  return std::min(i * i * defect_ohm * g, 50.0);
+}
+
 Pack::Pack(uint64_t seed) : rng_(seed) {
   std::uniform_real_distribution<double> tol(-0.01, 0.01);   // 1 % resistors
   for (int i = 0; i < bms::cfg::kCells; ++i) {
@@ -89,7 +95,7 @@ Pack::Pack(uint64_t seed) : rng_(seed) {
 double Pack::cell_voltage(int i) const {
   const CellTruth& c = cell[i];
   const double i_ext = c.external_ohm > 0.0 ? c.ocv() / c.external_ohm : 0.0;
-  return c.ocv() - (i_pack_ + i_ext) * c.r_ohm - c.vp;
+  return c.ocv() - (i_pack_ + i_ext) * (c.r_ohm + c.defect_ohm) - c.vp;
 }
 
 double Pack::pack_voltage() const {
@@ -105,7 +111,7 @@ double Pack::compute_current() const {
     double v_open = 0.0, r_sum = 0.0;
     for (const CellTruth& c : cell) {
       v_open += c.ocv() - c.vp;
-      r_sum += c.r_ohm;
+      r_sum += c.r_ohm + c.defect_ohm;
     }
     i -= std::clamp((charge_cv_v - v_open) / r_sum, 0.0, charge_a);   // CC, then CV taper
   }
@@ -145,8 +151,8 @@ void Pack::step(double dt) {
     const double vp_inf = i_term * c.rp_ohm;
     c.vp = vp_inf + (c.vp - vp_inf) * std::exp(-dt / c.tau_p_s);
 
-    const double q_core =
-        i_term * i_term * c.r_ohm + i_term * c.vp + c.ocv() * i_int + c.abnormal_heat_w();
+    const double q_core = i_term * i_term * c.r_ohm + i_term * c.vp + c.ocv() * i_int +
+                          c.abnormal_heat_w() + c.defect_heat_w(i_term);
     const double q_surf =
         c.external_ohm > 0.0 ? c.external_share * c.ocv() * c.ocv() / c.external_ohm : 0.0;
 

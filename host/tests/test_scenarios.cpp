@@ -33,6 +33,7 @@ SCENARIO(heat_warning)
 SCENARIO(small_fault)
 SCENARIO(cell_outlier)
 SCENARIO(self_acceleration)
+SCENARIO(load_defect)
 SCENARIO(soft_short)
 SCENARIO(internal_leak)
 SCENARIO(forecast_hot_day)
@@ -56,5 +57,5 @@ SCENARIO(fit_log)
 
 TEST(every_scenario_has_a_test) {
   // Keeps this list in step with the scenario library.
-  CHECK(sim::scenarios().size() == 29);
+  CHECK(sim::scenarios().size() == 30);
 }

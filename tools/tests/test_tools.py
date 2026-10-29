@@ -21,6 +21,9 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
+sys.path.insert(0, str(ROOT / "docs" / "build-guide"))
+
+import boards  # noqa: E402
 import calibrate  # noqa: E402
 import ocv_table  # noqa: E402
 import sim_server  # noqa: E402
@@ -53,6 +56,27 @@ class CalibrateTest(unittest.TestCase):
                  "reference": str(v + (0.06 if v == 8.4 else 0.0))} for v in (0, 4.2, 8.4, 12.6, 16.8)]
         _, _, passed = calibrate.calibrate(rows)
         self.assertFalse(passed)
+
+
+class BoardsTest(unittest.TestCase):
+    def test_both_boards_join_every_net_without_shorts(self):
+        for make in boards.BOARDS:
+            nets = boards.check(make())
+            self.assertIn("GND", nets)
+
+    def test_a_short_is_caught(self):
+        b = boards.board_a()
+        b.run("GND", (17, 20), (16, 20))   # 3V3 bus to a free pad...
+        b.run("GND", (16, 20), (15, 20))   # ...and on to the GND bus
+        with self.assertRaisesRegex(ValueError, "short"):
+            boards.check(b)
+
+    def test_an_open_net_is_caught(self):
+        b = boards.board_b()
+        # Remove the bare run that joins the INA226's SDA pin to the two SDA links.
+        b.bare = [w for w in b.bare if not (w[0] == "SDA" and w[1][0] == (24, 21))]
+        with self.assertRaisesRegex(ValueError, "not joined"):
+            boards.check(b)
 
 
 class OcvTableTest(unittest.TestCase):
@@ -118,6 +142,18 @@ class SimServerTest(unittest.TestCase):
                 self.assertIn("load 1.5", r.read().decode())
             with urllib.request.urlopen(base + "/", timeout=2) as r:
                 self.assertIn(b"Predictive BMS", r.read())
+            self.assertIn("fixed", state["sim"])   # the fixed-limit twin
+            self.assertIn("epoch", state["sim"])
+            report = {}
+            for _ in range(60):
+                with urllib.request.urlopen(base + "/api/scenarios", timeout=2) as r:
+                    report = json.loads(r.read())
+                if report.get("status") == "done":
+                    break
+                time.sleep(0.5)
+            self.assertEqual(report.get("status"), "done")
+            self.assertEqual(len(report["results"]), 30)
+            self.assertTrue(all(x["pass"] for x in report["results"]))
         finally:
             proc.terminate()
             proc.wait(timeout=5)

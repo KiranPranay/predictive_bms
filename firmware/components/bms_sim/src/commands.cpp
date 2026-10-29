@@ -44,8 +44,15 @@ std::string apply_command(Pack& p, const std::string& line) {
     if (!(in >> v)) return "usage: ambient C";
     p.t_amb = v;
   } else if (cmd == "soc") {
-    if (!(in >> v)) return "usage: soc 0-1";
-    for (CellTruth& c : p.cell) c.soc = std::clamp(v, 0.0, 1.0);
+    if (!(in >> v)) return "usage: soc [CELL] 0-1";
+    double v2 = 0.0;
+    if (in >> v2) {   // soc CELL VALUE
+      const int n = static_cast<int>(v);
+      if (n < 1 || n > cells) return "usage: soc [CELL] 0-1";
+      p.cell[n - 1].soc = std::clamp(v2, 0.0, 1.0);
+    } else {
+      for (CellTruth& c : p.cell) c.soc = std::clamp(v, 0.0, 1.0);
+    }
   } else if (cmd == "heat") {
     if (!index_arg(in, cells, i) || !(in >> v)) return "usage: heat CELL WATTS";
     p.cell[i].heat_w = v;
@@ -57,6 +64,13 @@ std::string apply_command(Pack& p, const std::string& line) {
     p.cell[i].heat_w = v;
     p.cell[i].heat_ref_c = p.cell[i].t_core;
     p.cell[i].heat_growth_c = growth;
+  } else if (cmd == "defect") {
+    if (!index_arg(in, cells, i) || !(in >> v)) return "usage: defect CELL MILLIOHM [GROWTH_C]";
+    double growth = 0.0;
+    in >> growth;
+    p.cell[i].defect_ohm = std::max(0.0, v) / 1000.0;
+    p.cell[i].defect_growth_c = std::max(0.0, growth);
+    p.cell[i].defect_ref_c = p.cell[i].t_core;
   } else if (cmd == "short") {
     if (!index_arg(in, cells, i) || !(in >> v)) return "usage: short CELL OHMS (0 removes)";
     p.cell[i].external_ohm = std::max(0.0, v);
@@ -93,6 +107,7 @@ std::string apply_command(Pack& p, const std::string& line) {
       c.heat_growth_c = 0.0;
       c.external_ohm = 0.0;
       c.internal_ohm = 0.0;
+      c.defect_ohm = 0.0;
     }
     for (int k = 0; k < ntcs; ++k) {
       p.sens.ntc_mode[k] = NtcMode::Normal;

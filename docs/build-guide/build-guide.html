@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Predictive BMS build guide</title>
+<style>
+@page { size: A4; margin: 15mm 14mm 17mm 14mm;
+  @bottom-left { content: "Predictive BMS · build guide"; font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; }
+  @bottom-right { content: "page " counter(page) " of " counter(pages); font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; } }
+@page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+body { font: 10pt/1.42 'Liberation Sans', Arial, Helvetica, sans-serif; color: #1d1d1b; margin: 0; }
+h1 { font-size: 20pt; margin: 0 0 4mm; }
+h2 { font-size: 15pt; margin: 0 0 3mm; padding-bottom: 1.5mm; border-bottom: 1.5px solid #2a78d6; break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.4mm; }
+ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+li { margin-bottom: 1mm; }
+section { break-before: page; }
+section.flow { break-before: auto; margin-top: 6mm; }
+figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; max-height: 235mm; border: 1px solid #ddd; }
+figure.snap img { max-height: 120mm; }
+figcaption { font-size: 8.8pt; color: #4f4d48; margin-top: 1.5mm; text-align: left; }
+table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 2mm 0 4mm; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: #eef4fb; text-align: left; padding: 1.4mm 1.6mm; border-bottom: 1px solid #9db8dc; }
+td { padding: 1.1mm 1.6mm; border-bottom: 1px solid #e3e0d6; vertical-align: top; }
+table.demo td:first-child { width: 32%; }
+.net { font-weight: bold; }
+.note, .safety { break-inside: avoid; }
+.note { background: #fff7e6; border-left: 3px solid #e07b00; padding: 2mm 3mm; margin: 2mm 0 4mm; font-size: 9.2pt; }
+.safety { background: #fdeceb; border-left: 3px solid #d03b3b; padding: 2mm 3mm; margin: 2mm 0 4mm; font-size: 9.2pt; }
+.cover { height: 260mm; display: flex; flex-direction: column; justify-content: space-between; }
+.cover .top { margin-top: 30mm; }
+.cover .title { font-size: 28pt; font-weight: bold; line-height: 1.15; margin-bottom: 6mm; }
+.cover .sub { font-size: 15pt; color: #2a78d6; margin-bottom: 14mm; }
+.cover .meta { font-size: 11pt; line-height: 1.7; }
+.cover .foot { font-size: 9pt; color: #4f4d48; border-top: 1px solid #ccc; padding-top: 3mm; }
+.toc { columns: 2; font-size: 10.5pt; }
+.toc li { margin-bottom: 1.5mm; }
+code { font-family: 'Liberation Mono', monospace; font-size: 9pt; background: #f3f2ee; padding: 0 1mm; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+</style></head><body>
+<div class="cover">
+  <div class="top">
+    <div class="title">Predictive Thermal Battery Management System for Li-ion Battery Packs</div>
+    <div class="sub">Build guide: circuits, single-line diagram, wiring, component placement, assembly and the simulation</div>
+    <div class="meta">
+      Major project · Department of EEE<br>
+      BVRIT HYDERABAD College of Engineering for Women<br>
+      Muskan Sulathana · Roll No. 23WH1A0208<br>
+      Guide: Dr. M. Rupesh, Associate Professor<br><br>
+      Design basis: architecture revision 2.2 (24 October 2026)<br>
+      Built 30 October 2026 from the predictive_bms repository
+    </div>
+  </div>
+  <div class="foot">The prototype is built from off-the-shelf modules on two perfboards; no PCB is made.
+  Every simulator result in this guide comes from an illustrative cell model, not from the project's cells:
+  the real values are measured at the build gates named beside them.</div>
+</div>
+
+<section>
+<h2>Contents</h2>
+<ol class="toc">
+<li>How to use this guide</li><li>The system at a glance</li><li>Single-line diagram</li>
+<li>Circuit diagrams</li><li>ESP32 pin map</li><li>Components</li><li>Wiring between the units</li>
+<li>Board A: cell-tap sensing</li><li>Board B: ESP32, temperatures, current, relays</li>
+<li>Module pin orders</li><li>Enclosure layout</li><li>Assembly, step by step</li>
+<li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li><li>Safety rules</li>
+</ol>
+<h3>1. How to use this guide</h3>
+<ul>
+<li>Build in the order of section 12, and follow the gates of the safe build sequence (section 14). No lithium cell is
+connected before Gate 3.</li>
+<li>Holes are named by column and row, <b>(c, r)</b>, counted from 0 at the top-left corner of the component side.
+Column 0 is on the left; on the underside drawings it is on the right, because the board is turned over.</li>
+<li>Wire colours in the drawings mark nets, not the colour of wire to buy: red 3V3, orange 5 V, black GND, blue SDA,
+amber SCL, purple taps, green ADC inputs, teal NTC lines.</li>
+<li>The board layouts are generated from one description of each board, which is checked automatically: every net
+is joined, and no two nets touch. The placement tables, wiring lists and continuity checks come from the same
+description.</li>
+<li>Generic modules differ. Before soldering a module's header, compare its printed pin names with section 10.</li>
+</ul>
+</section>
+
+<section>
+<h2>2. The system at a glance</h2>
+<p>Two independent layers protect the pack. <b>Layer A</b> is a hardware BMS that always limits cell voltage and
+current and balances the cells. <b>Layer B</b> is the ESP32 supervisor: five times a second it measures every cell
+voltage, the pack current, four cell temperatures and the air temperature, runs a two-state thermal model of every
+cell with a Kalman filter, and opens separate charge and load relays, latched, before a fixed limit is reached.</p>
+<figure class=""><img src="../architecture/current-architecture.svg" alt="Figure 1. Architecture revision 2.2: power, protection and sensing."><figcaption>Figure 1. Architecture revision 2.2: power, protection and sensing.</figcaption></figure>
+<table class=""><thead><tr><th>Quantity</th><th>Value</th></tr></thead><tbody>
+<tr><td>Pack</td><td>4S1P NCR18650GA, 14.4 V nominal, 16.8 V max, 3.3 Ah (label)</td></tr>
+<tr><td>Continuous discharge</td><td>5 A (software trip at 5.0 A); fuse 7.5 A at B+</td></tr>
+<tr><td>Charge</td><td>isolated 16.8 V CC/CV, 1.5 A max (software trip at 1.6 A)</td></tr>
+<tr><td>Cell limits (software)</td><td>warn 4.10 V / 3.20 V; trip 4.15 V (charge off) / 3.10 V (load off)</td></tr>
+<tr><td>Temperature limits</td><td>charging 40 / 45 °C; discharging 50 / 55 °C; spread 7 / 10 °C</td></tr>
+<tr><td>Predictive levels</td><td>abnormal heat 0.5 °C/min Warning, 1.0 °C/min Trip; cell difference 0.3 / 0.6 °C/min</td></tr>
+<tr><td>Hardware BMS</td><td>OV 4.25 V, UV 2.7 V, short circuit, balance from 4.18 V at 30 mA</td></tr>
+</tbody></table>
+</section>
+<section>
+<h3>How the supervisor decides</h3>
+<figure class=""><img src="figures/firmware-flow.svg" alt="Figure 1a. One 5 Hz sample of the safety task, from the sensors to the relays."><figcaption>Figure 1a. One 5 Hz sample of the safety task, from the sensors to the relays.</figcaption></figure>
+<table class=""><thead><tr><th>Level</th><th>Entered when any one of these holds</th><th>Action</th></tr></thead><tbody>
+<tr><td>0 Normal</td><td>none of the conditions below</td><td>none</td></tr>
+<tr><td>1 Watch</td><td><i>thermal:</i> 5-minute forecast too low by 1.0 °C or more; abnormal heat 0.3 °C/min above the other cells for 30 s; under 10 min to the limit, or current above the safe current for 30 s. <i>Electrical:</i> leak at rest of 20 mA or more; resistance more than 30 % from its Gate 4 value</td><td>dashboard notice and log</td></tr>
+<tr><td>2 Warning</td><td>abnormal heat of 0.5 °C/min (about 0.4 W) for 30 s, or a thermal and an electrical Watch on the same cell</td><td>alarm; both branches stay on</td></tr>
+<tr><td>3 Trip</td><td>abnormal heat of 1.0 °C/min (about 0.75 W) for 10 s; 0.6 °C/min above the other cells for 10 s; self-accelerating heat while at Warning</td><td>both relays open, latched, logged</td></tr>
+</tbody></table>
+<p>Risk levels of architecture section 9.8. They are fixed rules, not a trained classifier, so every level can be traced
+to the measurement that set it.</p>
+</section>
+
+<section>
+<h2>3. Single-line diagram</h2>
+<figure class=""><img src="figures/sld.svg" alt="Figure 2. Single-line diagram of the power path and the 5 V auxiliary supply."><figcaption>Figure 2. Single-line diagram of the power path and the 5 V auxiliary supply.</figcaption></figure>
+<ul>
+<li>The fuse sits at the pack's positive exit, then the shunt, then the branch wiring (section 11).</li>
+<li>K_LOAD and K_CHARGE are normally-open contacts. Pull-ups hold both open whenever the ESP32 is reset, crashed or
+unpowered.</li>
+<li>The LM2596 is fed after the fuse and before the shunt. Its own current therefore does not count as pack current,
+so the pack can read "at rest" (below 20 mA), which the self-discharge estimate needs.</li>
+</ul>
+</section>
+
+<section>
+<h2>4. Circuit diagrams</h2>
+<figure class=""><img src="figures/circuit-taps.svg" alt="Figure 3. Cell-tap voltage sensing on board A."><figcaption>Figure 3. Cell-tap voltage sensing on board A.</figcaption></figure>
+</section>
+<section>
+<figure class=""><img src="figures/circuit-ntc-current.svg" alt="Figure 4. Temperature dividers and the current measurement on board B."><figcaption>Figure 4. Temperature dividers and the current measurement on board B.</figcaption></figure>
+<figure class=""><img src="figures/circuit-control.svg" alt="Figure 5. ESP32 control: relay inputs with pull-ups, alarm buzzer and LED."><figcaption>Figure 5. ESP32 control: relay inputs with pull-ups, alarm buzzer and LED.</figcaption></figure>
+</section>
+
+<section>
+<h2>5. ESP32 pin map</h2>
+<table class=""><thead><tr><th>Function</th><th>ESP32 pin</th><th>Board B</th><th>Notes</th></tr></thead><tbody>
+<tr><td>I2C SDA</td><td>GPIO21</td><td>J7, J8</td><td>ADS1115 (0x48) and INA226 (0x40)</td></tr>
+<tr><td>I2C SCL</td><td>GPIO22</td><td>J7, J8</td><td>4.7 kΩ pull-ups only if the modules have none</td></tr>
+<tr><td>K_LOAD</td><td>GPIO25</td><td>J5 IN1</td><td>active LOW, 10 kΩ pull-up to 3V3</td></tr>
+<tr><td>K_CHARGE</td><td>GPIO26</td><td>J5 IN2</td><td>active LOW, 10 kΩ pull-up to 3V3</td></tr>
+<tr><td>Alarm buzzer and LED</td><td>GPIO27</td><td>J6 I/O, LED1</td><td>steady = trip, 1 Hz = Warning</td></tr>
+<tr><td>NTC1 (cell 1)</td><td>GPIO32 · ADC1_CH4</td><td>J9</td><td>ADC1 only</td></tr>
+<tr><td>NTC2 (cell 2)</td><td>GPIO33 · ADC1_CH5</td><td>J10</td><td></td></tr>
+<tr><td>NTC3 (cell 3)</td><td>GPIO34 · ADC1_CH6</td><td>J11</td><td>input-only pin</td></tr>
+<tr><td>NTC4 (cell 4)</td><td>GPIO35 · ADC1_CH7</td><td>J12</td><td>input-only pin</td></tr>
+<tr><td>NTC5 (air)</td><td>GPIO36 (VP) · ADC1_CH0</td><td>J13</td><td>input-only pin</td></tr>
+<tr><td>Manual reset</td><td>GPIO0 (BOOT)</td><td>on the DevKit</td><td>hold 3 s; or <code>reset</code> on the console</td></tr>
+<tr><td>Power</td><td>VIN 5 V, 3V3 out</td><td>J4, rails</td><td>VIN from the LM2596 set to 5.00 V</td></tr>
+</tbody></table>
+</section>
+
+<section class="flow">
+<h2>6. Components</h2>
+<h3>6.1 Bill of materials (architecture BOM)</h3>
+<p>Full replacement value of the active items: <b>₹9,260.19</b> (prices from <code>bom.csv</code>; shipping
+excluded; items marked "existing stock" are owned already).</p>
+<table class=""><thead><tr><th>#</th><th>Part</th><th>Specification</th><th>Qty</th><th>Line total</th><th>Status</th></tr></thead><tbody>
+<tr><td>1</td><td>Microcontroller</td><td>ESP32-WROOM-32 DevKit v1 30-pin</td><td>1 pcs</td><td>₹639.00</td><td>In cart</td></tr>
+<tr><td>2</td><td>Li-ion cells</td><td>Panasonic/Sanyo NCR18650GA 3.6V 3300mAh cells; matched 4S1P set</td><td>4 pcs</td><td>₹3,596.00</td><td>Available from existing stock</td></tr>
+<tr><td>3</td><td>Independent hardware BMS</td><td>4S NMC common-port board; 20A hardware rating; OV/UV/OCD/SCD and passive balance</td><td>1 pcs</td><td>₹239.00</td><td>In cart</td></tr>
+<tr><td>4</td><td>Cell spacers</td><td>18650 2x1 modular spacers; upper and lower layers</td><td>4 pcs</td><td>₹16.00</td><td>In cart</td></tr>
+<tr><td>5</td><td>Positive terminal rings</td><td>18650 fish-paper adhesive terminal insulation 20-hole sheet</td><td>2 sheet</td><td>₹12.00</td><td>In cart</td></tr>
+<tr><td>6</td><td>Barrier paper and pack sleeve</td><td>Fish/barley paper plus appropriately sized PVC heat-shrink sleeve</td><td>1 set</td><td>₹150.00</td><td>Verify before order</td></tr>
+<tr><td>7</td><td>Pure nickel strip</td><td>0.15x8mm pure nickel strip</td><td>1 pack</td><td>₹569.00</td><td>Available from existing stock</td></tr>
+<tr><td>8</td><td>Fast NTC thermistors</td><td>10k B3950 epoxy bead thermistors</td><td>5 pcs</td><td>₹70.00</td><td>Add one to cart</td></tr>
+<tr><td>9</td><td>External ADC</td><td>ADS1115 16-bit 4-channel I2C ADC at 3.3V</td><td>1 pcs</td><td>₹119.00</td><td>In cart</td></tr>
+<tr><td>10</td><td>Precision resistor kit</td><td>1% metal-film values including 10k; 56k; 330k</td><td>1 set</td><td>₹389.00</td><td>In cart</td></tr>
+<tr><td>11</td><td>RC filters and ADC clamps</td><td>100nF capacitors; 10k series resistors; low-leakage 3.3V clamps</td><td>1 set</td><td>₹100.00</td><td>Verify before order</td></tr>
+<tr><td>12</td><td>Current and power monitor</td><td>INA226 36V bidirectional I2C module</td><td>1 pcs</td><td>₹124.00</td><td>In cart</td></tr>
+<tr><td>13</td><td>External shunt</td><td>5mOhm 3W 1% Kelvin-connected shunt pack of 3</td><td>1 pack</td><td>₹15.00</td><td>In cart</td></tr>
+<tr><td>14</td><td>Buck regulator</td><td>LM2596 adjustable buck set to 5.0V before connection</td><td>1 pcs</td><td>₹45.00</td><td>In cart</td></tr>
+<tr><td>15</td><td>Charge and load disconnect</td><td>Dual 5V relay module; 2 independently controlled NO contacts; 10A at 30VDC</td><td>1 pcs</td><td>₹209.00</td><td>In cart</td></tr>
+<tr><td>16</td><td>Pack fuse</td><td>7.5A 32V medium ATC/ATO blade fuse</td><td>2 pcs</td><td>₹22.00</td><td>In cart</td></tr>
+<tr><td>17</td><td>Inline fuse holder</td><td>Waterproof inline blade-fuse holder pack of 5</td><td>1 pack</td><td>₹589.00</td><td>In cart</td></tr>
+<tr><td>18</td><td>Power and balance connectors</td><td>2 XT60 pairs plus 5-pin JST-XH balance or tap harness</td><td>1 set</td><td>₹140.00</td><td>In cart</td></tr>
+<tr><td>19</td><td>Power and sense wire</td><td>16AWG red/black power wire plus five colours of 22AWG sense wire</td><td>7 m</td><td>₹198.00</td><td>In cart</td></tr>
+<tr><td>20</td><td>Perfboard</td><td>FR4 7x9cm 2.54mm single-sided prototyping board</td><td>2 pcs</td><td>₹78.19</td><td>Available from existing stock</td></tr>
+<tr><td>21</td><td>Dedicated charger</td><td>Isolated 16.8V CC/CV charger; 1.5A maximum; for 4S NMC or Li-ion</td><td>1 pcs</td><td>₹850.00</td><td>Available from existing stock</td></tr>
+<tr><td>22</td><td>Charger connector</td><td>Barrel adapter pair matched to the selected charger&#x27;s measured plug; provisional 5.5x2.5mm</td><td>1 pair</td><td>₹169.00</td><td>Hold - verify charger plug</td></tr>
+<tr><td>23</td><td>PETG filament</td><td>1.75mm PETG light grey 1kg spool</td><td>1 spool</td><td>₹780.00</td><td>Available from existing stock</td></tr>
+<tr><td>24</td><td>Mounting and strain relief</td><td>M3 standoffs; screws; cable glands; ferrules; ties and adhesive mounts</td><td>1 set</td><td>₹100.00</td><td>Verify before order</td></tr>
+<tr><td>25</td><td>Alarm</td><td>5V active buzzer module plus red status LED and resistor</td><td>1 set</td><td>₹42.00</td><td>In cart</td></tr>
+</tbody></table>
+<h3>6.2 Passive parts on the two boards</h3>
+<table class=""><thead><tr><th>Part</th><th>Value</th><th>Qty</th><th>Source</th></tr></thead><tbody>
+<tr><td>Ceramic capacitor</td><td>100n</td><td>9</td><td>BOM item 11</td></tr>
+<tr><td>Clamp diode</td><td>clamp (TBD)</td><td>4</td><td>BOM item 11: chosen after the Gate 1 leakage test</td></tr>
+<tr><td>LED</td><td>red LED</td><td>1</td><td>stock (BOM item 25)</td></tr>
+<tr><td>Resistor 1/4 W 1 % metal film</td><td>10k</td><td>11</td><td>kit (BOM item 10)</td></tr>
+<tr><td>Resistor 1/4 W 1 % metal film</td><td>330R</td><td>1</td><td>kit; any value that gives a few mA in the LED</td></tr>
+<tr><td>Resistor 1/4 W 1 % metal film</td><td>330k</td><td>4</td><td>kit (BOM item 10): check the value is in it</td></tr>
+<tr><td>Resistor 1/4 W 1 % metal film</td><td>56k</td><td>4</td><td>kit (BOM item 10): check the value is in it</td></tr>
+<tr><td>Resistor 1/4 W (tap entry, at the pack end)</td><td>1–10 kΩ, e.g. 10k</td><td>4</td><td>kit (section 11)</td></tr>
+</tbody></table>
+<h3>6.3 Assembly hardware to add to the order</h3>
+<p>These small parts are needed to build the boards as drawn and are not lines of the BOM yet.</p>
+<table class=""><thead><tr><th>Part</th><th>Qty</th><th>Used for</th></tr></thead><tbody>
+<tr><td>Female header 1 × 15, 2.54 mm</td><td>2</td><td>ESP32 DevKit sockets (board B, U1)</td></tr>
+<tr><td>Female header 1 × 10, 2.54 mm</td><td>1</td><td>ADS1115 socket (board A, J2)</td></tr>
+<tr><td>Female header 1 × 8, 2.54 mm</td><td>1</td><td>INA226 socket (board B, J8)</td></tr>
+<tr><td>Male header strip, 2.54 mm</td><td>1 strip (40 pins)</td><td>J3, J7 (4 each), J5 (4), J6 (3), J14 (2), and spares</td></tr>
+<tr><td>JST-XH 2-pin plug and socket with lead</td><td>5</td><td>NTC1–NTC5 (board B, J9–J13)</td></tr>
+<tr><td>JST-XH 5-pin plug and socket with lead</td><td>1</td><td>tap harness (board A, J1); BOM item 18 has 4</td></tr>
+<tr><td>Screw terminal, 2-pin, 5.08 mm</td><td>1</td><td>5 V in (board B, J4)</td></tr>
+<tr><td>Female–female jumper leads, 20 cm</td><td>1 set (about 15)</td><td>board A ↔ B link, relay inputs, buzzer</td></tr>
+<tr><td>Tinned copper wire, 0.5–0.6 mm (or resistor offcuts)</td><td>about 1 m</td><td>bare runs and bridges on both boards</td></tr>
+<tr><td>Insulated hook-up wire, 24–30 AWG</td><td>about 2 m</td><td>the insulated links (35 on both boards)</td></tr>
+<tr><td>Heat-shrink, 2–3 mm</td><td>1 m</td><td>tap-entry resistors and NTC leads</td></tr>
+<tr><td>M3 nylon standoffs and screws</td><td>8</td><td>both boards (part of BOM item 24)</td></tr>
+</tbody></table>
+</section>
+
+<section>
+<h2>7. Wiring between the units</h2>
+<figure class=""><img src="figures/wiring-overview.svg" alt="Figure 6. Every connection between the pack, the power parts, the two boards and the modules."><figcaption>Figure 6. Every connection between the pack, the power parts, the two boards and the modules.</figcaption></figure>
+</section>
+<section>
+<h3>Connectors</h3>
+<table class=""><thead><tr><th>Connector</th><th>Goes to</th></tr></thead><tbody>
+<tr><td><b>J1 B-</b></td><td>nothing (see the note on the sense ground)</td></tr>
+<tr><td><b>J1 B1, B2, B3, B+</b></td><td>the pack&#x27;s taps, each through a 1-10 kΩ resistor at the pack end</td></tr>
+<tr><td><b>J2</b></td><td>ADS1115 module (plugs in)</td></tr>
+<tr><td><b>J3</b></td><td>board B J7: 3V3, GND, SCL, SDA</td></tr>
+<tr><td><b>J4</b></td><td>LM2596 output, set to 5.00 V before connecting</td></tr>
+<tr><td><b>J5 GND, IN1, IN2, VCC</b></td><td>relay module GND, IN1 (K_LOAD), IN2 (K_CHARGE), VCC</td></tr>
+<tr><td><b>J6 VCC, I/O, GND</b></td><td>active buzzer module</td></tr>
+<tr><td><b>J7</b></td><td>board A J3: 3V3, GND, SCL, SDA</td></tr>
+<tr><td><b>J8</b></td><td>INA226 module (plugs in)</td></tr>
+<tr><td><b>J9-J12</b></td><td>NTC1-NTC4 on cells 1-4</td></tr>
+<tr><td><b>J13</b></td><td>NTC5 in the air of the vent path</td></tr>
+<tr><td><b>J14 IN+, IN-</b></td><td>the shunt&#x27;s Kelvin sense pair: IN+ on the fuse side, IN- on the load side</td></tr>
+</tbody></table>
+<div class="note">Tap harness: fit a 1–10 kΩ resistor at the pack end of each tap wire (B1, B2, B3, B+), sleeved in
+heat-shrink, so a damaged wire cannot short a cell. Never hot-plug a harness that has not been measured: each
+adjacent pair must read one cell voltage, rising in order. Connect B− first.</div>
+</section>
+
+<section>
+<h2>8. Board A: cell-tap sensing</h2>
+<p>Four identical divider channels feed the ADS1115. Parts are placed by channel, left to right in the direction of
+the signal: tap in, 330 kΩ, the node, 10 kΩ and 56 kΩ, then the filter capacitor and the clamp. Two bare buses run
+down the board: GND at column 15 and 3V3 at column 17.</p>
+<figure class=""><img src="figures/board-a-top.svg" alt="Figure 7. Board A, component side."><figcaption>Figure 7. Board A, component side.</figcaption></figure>
+</section>
+<section>
+<figure class=""><img src="figures/board-a-bottom.svg" alt="Figure 8. Board A, underside (turned over left to right)."><figcaption>Figure 8. Board A, underside (turned over left to right).</figcaption></figure>
+<div class="note">J1 pin 1 (B−) is deliberately not connected. Joining B− to this board's ground would join B− and P−
+through a thin wire and bypass the hardware BMS's switch.</div>
+</section>
+<section>
+<h3>Board A: placement</h3>
+<table class=""><thead><tr><th>Ref</th><th>Part</th><th>Pins and holes (c, r)</th><th>Note</th></tr></thead><tbody>
+<tr><td><b>J1</b></td><td>JST-XH 5-pin</td><td>B- (1, 3) · B1 (1, 4) · B2 (1, 5) · B3 (1, 6) · B+ (1, 7)</td><td>tap harness from the pack</td></tr>
+<tr><td><b>R1</b></td><td>330k</td><td>1 (4, 3) · 2 (8, 3)</td><td></td></tr>
+<tr><td><b>R5</b></td><td>10k</td><td>1 (9, 3) · 2 (13, 3)</td><td></td></tr>
+<tr><td><b>R9</b></td><td>56k</td><td>1 (9, 4) · 2 (13, 4)</td><td></td></tr>
+<tr><td><b>C1</b></td><td>100n</td><td>1 (14, 3) · 2 (14, 4)</td><td></td></tr>
+<tr><td><b>D1</b></td><td>clamp (TBD)</td><td>A (14, 2) · K (17, 2)</td><td>fit after the Gate 1 leakage test</td></tr>
+<tr><td><b>R2</b></td><td>330k</td><td>1 (4, 8) · 2 (8, 8)</td><td></td></tr>
+<tr><td><b>R6</b></td><td>10k</td><td>1 (9, 8) · 2 (13, 8)</td><td></td></tr>
+<tr><td><b>R10</b></td><td>56k</td><td>1 (9, 9) · 2 (13, 9)</td><td></td></tr>
+<tr><td><b>C2</b></td><td>100n</td><td>1 (14, 8) · 2 (14, 9)</td><td></td></tr>
+<tr><td><b>D2</b></td><td>clamp (TBD)</td><td>A (14, 7) · K (17, 7)</td><td>fit after the Gate 1 leakage test</td></tr>
+<tr><td><b>R3</b></td><td>330k</td><td>1 (4, 13) · 2 (8, 13)</td><td></td></tr>
+<tr><td><b>R7</b></td><td>10k</td><td>1 (9, 13) · 2 (13, 13)</td><td></td></tr>
+<tr><td><b>R11</b></td><td>56k</td><td>1 (9, 14) · 2 (13, 14)</td><td></td></tr>
+<tr><td><b>C3</b></td><td>100n</td><td>1 (14, 13) · 2 (14, 14)</td><td></td></tr>
+<tr><td><b>D3</b></td><td>clamp (TBD)</td><td>A (14, 12) · K (17, 12)</td><td>fit after the Gate 1 leakage test</td></tr>
+<tr><td><b>R4</b></td><td>330k</td><td>1 (4, 18) · 2 (8, 18)</td><td></td></tr>
+<tr><td><b>R8</b></td><td>10k</td><td>1 (9, 18) · 2 (13, 18)</td><td></td></tr>
+<tr><td><b>R12</b></td><td>56k</td><td>1 (9, 19) · 2 (13, 19)</td><td></td></tr>
+<tr><td><b>C4</b></td><td>100n</td><td>1 (14, 18) · 2 (14, 19)</td><td></td></tr>
+<tr><td><b>D4</b></td><td>clamp (TBD)</td><td>A (14, 17) · K (17, 17)</td><td>fit after the Gate 1 leakage test</td></tr>
+<tr><td><b>J2</b></td><td>ADS1115 module</td><td>VDD (20, 4) · GND (20, 5) · SCL (20, 6) · SDA (20, 7) · ADDR (20, 8) · ALRT (20, 9) · A0 (20, 10) · A1 (20, 11) · A2 (20, 12) · A3 (20, 13)</td><td>1 x 10 female header</td></tr>
+<tr><td><b>J3</b></td><td>4-pin header</td><td>3V3 (29, 4) · GND (29, 5) · SCL (29, 6) · SDA (29, 7)</td><td>to board B, J7</td></tr>
+</tbody></table>
+<h3>Board A: wiring list</h3>
+<table class=""><thead><tr><th>#</th><th>Kind</th><th>Net</th><th>From → to</th><th>Holes / length</th></tr></thead><tbody>
+<tr><td>1</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B1</span></td><td>(1, 4) → (2, 4)</td><td>1</td></tr>
+<tr><td>2</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B1</span></td><td>(3, 3) → (4, 3)</td><td>1</td></tr>
+<tr><td>3</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N1</span></td><td>(8, 3) → (9, 3)</td><td>1</td></tr>
+<tr><td>4</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N1</span></td><td>(9, 3) → (9, 4)</td><td>1</td></tr>
+<tr><td>5</td><td>bare</td><td><span class="net" style="color:#1b9e77">A0</span></td><td>(13, 2) → (14, 2) via (13, 3), (14, 3)</td><td>3</td></tr>
+<tr><td>6</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(13, 4) → (15, 4)</td><td>2</td></tr>
+<tr><td>7</td><td>bare</td><td><span class="net" style="color:#1b9e77">A0</span></td><td>(19, 10) → (20, 10)</td><td>1</td></tr>
+<tr><td>8</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B2</span></td><td>(1, 5) → (2, 5)</td><td>1</td></tr>
+<tr><td>9</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B2</span></td><td>(3, 8) → (4, 8)</td><td>1</td></tr>
+<tr><td>10</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N2</span></td><td>(8, 8) → (9, 8)</td><td>1</td></tr>
+<tr><td>11</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N2</span></td><td>(9, 8) → (9, 9)</td><td>1</td></tr>
+<tr><td>12</td><td>bare</td><td><span class="net" style="color:#1b9e77">A1</span></td><td>(13, 7) → (14, 7) via (13, 8), (14, 8)</td><td>3</td></tr>
+<tr><td>13</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(13, 9) → (15, 9)</td><td>2</td></tr>
+<tr><td>14</td><td>bare</td><td><span class="net" style="color:#1b9e77">A1</span></td><td>(19, 11) → (20, 11)</td><td>1</td></tr>
+<tr><td>15</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B3</span></td><td>(1, 6) → (2, 6)</td><td>1</td></tr>
+<tr><td>16</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B3</span></td><td>(3, 13) → (4, 13)</td><td>1</td></tr>
+<tr><td>17</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N3</span></td><td>(8, 13) → (9, 13)</td><td>1</td></tr>
+<tr><td>18</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N3</span></td><td>(9, 13) → (9, 14)</td><td>1</td></tr>
+<tr><td>19</td><td>bare</td><td><span class="net" style="color:#1b9e77">A2</span></td><td>(13, 12) → (14, 12) via (13, 13), (14, 13)</td><td>3</td></tr>
+<tr><td>20</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(13, 14) → (15, 14)</td><td>2</td></tr>
+<tr><td>21</td><td>bare</td><td><span class="net" style="color:#1b9e77">A2</span></td><td>(19, 12) → (20, 12)</td><td>1</td></tr>
+<tr><td>22</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B+</span></td><td>(1, 7) → (2, 7)</td><td>1</td></tr>
+<tr><td>23</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B+</span></td><td>(3, 18) → (4, 18)</td><td>1</td></tr>
+<tr><td>24</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N4</span></td><td>(8, 18) → (9, 18)</td><td>1</td></tr>
+<tr><td>25</td><td>bare</td><td><span class="net" style="color:#9c7fe0">N4</span></td><td>(9, 18) → (9, 19)</td><td>1</td></tr>
+<tr><td>26</td><td>bare</td><td><span class="net" style="color:#1b9e77">A3</span></td><td>(13, 17) → (14, 17) via (13, 18), (14, 18)</td><td>3</td></tr>
+<tr><td>27</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(13, 19) → (15, 19)</td><td>2</td></tr>
+<tr><td>28</td><td>bare</td><td><span class="net" style="color:#1b9e77">A3</span></td><td>(19, 13) → (20, 13)</td><td>1</td></tr>
+<tr><td>29</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(15, 1) → (15, 21)</td><td>20</td></tr>
+<tr><td>30</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(17, 1) → (17, 21)</td><td>20</td></tr>
+<tr><td>31</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(17, 4) → (29, 4)</td><td>12</td></tr>
+<tr><td>32</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(15, 5) → (16, 5)</td><td>1</td></tr>
+<tr><td>33</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(19, 5) → (29, 5)</td><td>10</td></tr>
+<tr><td>34</td><td>bare</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(20, 6) → (29, 6)</td><td>9</td></tr>
+<tr><td>35</td><td>bare</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(20, 7) → (29, 7)</td><td>9</td></tr>
+<tr><td>36</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(20, 8) → (21, 8)</td><td>1</td></tr>
+<tr><td>37</td><td>insulated</td><td><span class="net" style="color:#6a3fd0">B1</span></td><td>(2, 4) → (3, 3)</td><td>cut 19 mm</td></tr>
+<tr><td>38</td><td>insulated</td><td><span class="net" style="color:#1b9e77">A0</span></td><td>(13, 2) → (19, 10)</td><td>cut 40 mm</td></tr>
+<tr><td>39</td><td>insulated</td><td><span class="net" style="color:#6a3fd0">B2</span></td><td>(2, 5) → (3, 8)</td><td>cut 23 mm</td></tr>
+<tr><td>40</td><td>insulated</td><td><span class="net" style="color:#1b9e77">A1</span></td><td>(13, 7) → (19, 11)</td><td>cut 33 mm</td></tr>
+<tr><td>41</td><td>insulated</td><td><span class="net" style="color:#6a3fd0">B3</span></td><td>(2, 6) → (3, 13)</td><td>cut 33 mm</td></tr>
+<tr><td>42</td><td>insulated</td><td><span class="net" style="color:#1b9e77">A2</span></td><td>(13, 12) → (19, 12)</td><td>cut 30 mm</td></tr>
+<tr><td>43</td><td>insulated</td><td><span class="net" style="color:#6a3fd0">B+</span></td><td>(2, 7) → (3, 18)</td><td>cut 43 mm</td></tr>
+<tr><td>44</td><td>insulated</td><td><span class="net" style="color:#1b9e77">A3</span></td><td>(13, 17) → (19, 13)</td><td>cut 33 mm</td></tr>
+<tr><td>45</td><td>insulated</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(16, 5) → (19, 5)</td><td>cut 23 mm</td></tr>
+<tr><td>46</td><td>insulated</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(21, 8) → (22, 5)</td><td>cut 23 mm</td></tr>
+</tbody></table>
+</section>
+
+<section>
+<h2>9. Board B: ESP32, temperatures, current, relays and alarm</h2>
+<p>The ESP32 sits in two 15-pin female headers with its USB end over the left edge, so the console cable fits with the
+board in the case. The five NTC dividers run down the right side with their connectors on the edge; the INA226 module,
+the relay and buzzer connectors and the 5 V input sit along the bottom edge.</p>
+<figure class=""><img src="figures/board-b-top.svg" alt="Figure 9. Board B, component side."><figcaption>Figure 9. Board B, component side.</figcaption></figure>
+</section>
+<section>
+<figure class=""><img src="figures/board-b-bottom.svg" alt="Figure 10. Board B, underside (turned over left to right)."><figcaption>Figure 10. Board B, underside (turned over left to right).</figcaption></figure>
+</section>
+<section>
+<h3>Board B: placement</h3>
+<table class=""><thead><tr><th>Ref</th><th>Part</th><th>Pins and holes (c, r)</th><th>Note</th></tr></thead><tbody>
+<tr><td><b>U1</b></td><td>ESP32 DevKit V1 (30-pin)</td><td>top row r = 2, bottom row r = 12, columns 1–15; used pins: VIN (1, 2), GND (2, 2), D27 (6, 2), D26 (7, 2), D25 (8, 2), D33 (9, 2), D32 (10, 2), D35 (11, 2), D34 (12, 2), VP (14, 2), 3V3 (1, 12), GND (2, 12), D21 (11, 12), D22 (14, 12)</td><td>2 x 15 female headers, rows 10 holes apart</td></tr>
+<tr><td><b>R1</b></td><td>10k</td><td>1 (22, 1) · 2 (26, 1)</td><td></td></tr>
+<tr><td><b>C1</b></td><td>100n</td><td>1 (27, 1) · 2 (27, 2)</td><td></td></tr>
+<tr><td><b>J9</b></td><td>JST-XH 2-pin</td><td>T (29, 1) · G (29, 2)</td><td>NTC1 (cell 1)</td></tr>
+<tr><td><b>R2</b></td><td>10k</td><td>1 (22, 4) · 2 (26, 4)</td><td></td></tr>
+<tr><td><b>C2</b></td><td>100n</td><td>1 (27, 4) · 2 (27, 5)</td><td></td></tr>
+<tr><td><b>J10</b></td><td>JST-XH 2-pin</td><td>T (29, 4) · G (29, 5)</td><td>NTC2 (cell 2)</td></tr>
+<tr><td><b>R3</b></td><td>10k</td><td>1 (22, 7) · 2 (26, 7)</td><td></td></tr>
+<tr><td><b>C3</b></td><td>100n</td><td>1 (27, 7) · 2 (27, 8)</td><td></td></tr>
+<tr><td><b>J11</b></td><td>JST-XH 2-pin</td><td>T (29, 7) · G (29, 8)</td><td>NTC3 (cell 3)</td></tr>
+<tr><td><b>R4</b></td><td>10k</td><td>1 (22, 10) · 2 (26, 10)</td><td></td></tr>
+<tr><td><b>C4</b></td><td>100n</td><td>1 (27, 10) · 2 (27, 11)</td><td></td></tr>
+<tr><td><b>J12</b></td><td>JST-XH 2-pin</td><td>T (29, 10) · G (29, 11)</td><td>NTC4 (cell 4)</td></tr>
+<tr><td><b>R5</b></td><td>10k</td><td>1 (22, 13) · 2 (26, 13)</td><td></td></tr>
+<tr><td><b>C5</b></td><td>100n</td><td>1 (27, 13) · 2 (27, 14)</td><td></td></tr>
+<tr><td><b>J13</b></td><td>JST-XH 2-pin</td><td>T (29, 13) · G (29, 14)</td><td>NTC5 (air)</td></tr>
+<tr><td><b>J8</b></td><td>INA226 module</td><td>VBS (20, 23) · IN- (21, 23) · IN+ (22, 23) · ALE (23, 23) · SDA (24, 23) · SCL (25, 23) · GND (26, 23) · VCC (27, 23)</td><td>1 x 8 female header; module stands over the board</td></tr>
+<tr><td><b>J14</b></td><td>2-pin header</td><td>IN+ (17, 23) · IN- (18, 23)</td><td>shunt sense pair</td></tr>
+<tr><td><b>J7</b></td><td>4-pin header</td><td>3V3 (29, 16) · GND (29, 17) · SCL (29, 18) · SDA (29, 19)</td><td>to board A, J3</td></tr>
+<tr><td><b>J4</b></td><td>2-pin screw terminal</td><td>+5V (0, 18) · GND (0, 20)</td><td>from the LM2596 (5.00 V)</td></tr>
+<tr><td><b>J5</b></td><td>4-pin header</td><td>GND (4, 23) · IN1 (5, 23) · IN2 (6, 23) · VCC (7, 23)</td><td>to the relay module</td></tr>
+<tr><td><b>R6</b></td><td>10k</td><td>1 (5, 17) · 2 (5, 21)</td><td></td></tr>
+<tr><td><b>R7</b></td><td>10k</td><td>1 (6, 17) · 2 (6, 21)</td><td></td></tr>
+<tr><td><b>J6</b></td><td>3-pin header</td><td>VCC (10, 23) · I/O (11, 23) · GND (12, 23)</td><td>to the buzzer module</td></tr>
+<tr><td><b>R8</b></td><td>330R</td><td>1 (11, 21) · 2 (15, 21)</td><td>sized for the LED</td></tr>
+<tr><td><b>LED1</b></td><td>red LED</td><td>A (16, 21) · K (17, 21)</td><td></td></tr>
+</tbody></table>
+<h3>Board B: wiring list</h3>
+<table class=""><thead><tr><th>#</th><th>Kind</th><th>Net</th><th>From → to</th><th>Holes / length</th></tr></thead><tbody>
+<tr><td>1</td><td>bare</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(1, 2) → (1, 1)</td><td>1</td></tr>
+<tr><td>2</td><td>bare</td><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>(6, 2) → (6, 1)</td><td>1</td></tr>
+<tr><td>3</td><td>bare</td><td><span class="net" style="color:#8e24aa">CHARGE</span></td><td>(7, 2) → (7, 1)</td><td>1</td></tr>
+<tr><td>4</td><td>bare</td><td><span class="net" style="color:#c2185b">LOAD</span></td><td>(8, 2) → (8, 1)</td><td>1</td></tr>
+<tr><td>5</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC2</span></td><td>(9, 2) → (9, 1)</td><td>1</td></tr>
+<tr><td>6</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC1</span></td><td>(10, 2) → (10, 1)</td><td>1</td></tr>
+<tr><td>7</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC4</span></td><td>(11, 2) → (11, 1)</td><td>1</td></tr>
+<tr><td>8</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC3</span></td><td>(12, 2) → (12, 1)</td><td>1</td></tr>
+<tr><td>9</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC5</span></td><td>(14, 2) → (14, 1)</td><td>1</td></tr>
+<tr><td>10</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(1, 12) → (1, 16)</td><td>4</td></tr>
+<tr><td>11</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(1, 16) → (21, 16)</td><td>20</td></tr>
+<tr><td>12</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(2, 12) → (2, 13)</td><td>1</td></tr>
+<tr><td>13</td><td>bare</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(11, 12) → (11, 13)</td><td>1</td></tr>
+<tr><td>14</td><td>bare</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(14, 12) → (14, 13)</td><td>1</td></tr>
+<tr><td>15</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 0) → (21, 17)</td><td>17</td></tr>
+<tr><td>16</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 0) → (25, 19)</td><td>19</td></tr>
+<tr><td>17</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 1) → (22, 1)</td><td>1</td></tr>
+<tr><td>18</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC1</span></td><td>(26, 1) → (29, 1)</td><td>3</td></tr>
+<tr><td>19</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 2) → (29, 2)</td><td>4</td></tr>
+<tr><td>20</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 4) → (22, 4)</td><td>1</td></tr>
+<tr><td>21</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC2</span></td><td>(26, 4) → (29, 4)</td><td>3</td></tr>
+<tr><td>22</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 5) → (29, 5)</td><td>4</td></tr>
+<tr><td>23</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 7) → (22, 7)</td><td>1</td></tr>
+<tr><td>24</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC3</span></td><td>(26, 7) → (29, 7)</td><td>3</td></tr>
+<tr><td>25</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 8) → (29, 8)</td><td>4</td></tr>
+<tr><td>26</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 10) → (22, 10)</td><td>1</td></tr>
+<tr><td>27</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC4</span></td><td>(26, 10) → (29, 10)</td><td>3</td></tr>
+<tr><td>28</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 11) → (29, 11)</td><td>4</td></tr>
+<tr><td>29</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 13) → (22, 13)</td><td>1</td></tr>
+<tr><td>30</td><td>bare</td><td><span class="net" style="color:#0f8a8a">NTC5</span></td><td>(26, 13) → (29, 13)</td><td>3</td></tr>
+<tr><td>31</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 14) → (29, 14)</td><td>4</td></tr>
+<tr><td>32</td><td>bare</td><td><span class="net" style="color:#00695c">IN-</span></td><td>(18, 23) → (21, 23)</td><td>3</td></tr>
+<tr><td>33</td><td>bare</td><td><span class="net" style="color:#00897b">IN+</span></td><td>(17, 23) → (17, 22)</td><td>1</td></tr>
+<tr><td>34</td><td>bare</td><td><span class="net" style="color:#00897b">IN+</span></td><td>(22, 22) → (22, 23)</td><td>1</td></tr>
+<tr><td>35</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(26, 23) → (25, 19) via (26, 22), (26, 21), (26, 20), (26, 19)</td><td>5</td></tr>
+<tr><td>36</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(27, 23) → (27, 22)</td><td>1</td></tr>
+<tr><td>37</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(20, 17) → (21, 17)</td><td>1</td></tr>
+<tr><td>38</td><td>bare</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(24, 21) → (24, 23)</td><td>2</td></tr>
+<tr><td>39</td><td>bare</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(25, 21) → (25, 23)</td><td>2</td></tr>
+<tr><td>40</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(21, 16) → (22, 16)</td><td>1</td></tr>
+<tr><td>41</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(28, 16) → (29, 16)</td><td>1</td></tr>
+<tr><td>42</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(25, 17) → (29, 17)</td><td>4</td></tr>
+<tr><td>43</td><td>bare</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(28, 18) → (29, 18)</td><td>1</td></tr>
+<tr><td>44</td><td>bare</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(28, 19) → (29, 19)</td><td>1</td></tr>
+<tr><td>45</td><td>bare</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(0, 18) → (2, 18)</td><td>2</td></tr>
+<tr><td>46</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(0, 20) → (3, 19) via (0, 19), (1, 19), (2, 19)</td><td>4</td></tr>
+<tr><td>47</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(3, 19) → (25, 19)</td><td>22</td></tr>
+<tr><td>48</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(5, 16) → (5, 17)</td><td>1</td></tr>
+<tr><td>49</td><td>bare</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(6, 16) → (6, 17)</td><td>1</td></tr>
+<tr><td>50</td><td>bare</td><td><span class="net" style="color:#c2185b">LOAD</span></td><td>(5, 21) → (5, 23)</td><td>2</td></tr>
+<tr><td>51</td><td>bare</td><td><span class="net" style="color:#8e24aa">CHARGE</span></td><td>(6, 21) → (6, 23)</td><td>2</td></tr>
+<tr><td>52</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(4, 19) → (4, 23)</td><td>4</td></tr>
+<tr><td>53</td><td>bare</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(7, 22) → (7, 23)</td><td>1</td></tr>
+<tr><td>54</td><td>bare</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(7, 23) → (10, 23)</td><td>3</td></tr>
+<tr><td>55</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(12, 23) → (12, 19)</td><td>4</td></tr>
+<tr><td>56</td><td>bare</td><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>(11, 21) → (11, 23)</td><td>2</td></tr>
+<tr><td>57</td><td>bare</td><td><span class="net" style="color:#a1887f">LEDA</span></td><td>(15, 21) → (16, 21)</td><td>1</td></tr>
+<tr><td>58</td><td>bare</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(17, 21) → (17, 19)</td><td>2</td></tr>
+<tr><td>59</td><td>insulated</td><td><span class="net" style="color:#2b2b2b">GND</span></td><td>(2, 13) → (3, 19)</td><td>cut 30 mm</td></tr>
+<tr><td>60</td><td>insulated</td><td><span class="net" style="color:#0f8a8a">NTC1</span></td><td>(10, 1) → (28, 1)</td><td>cut 61 mm</td></tr>
+<tr><td>61</td><td>insulated</td><td><span class="net" style="color:#0f8a8a">NTC2</span></td><td>(9, 1) → (28, 4)</td><td>cut 64 mm</td></tr>
+<tr><td>62</td><td>insulated</td><td><span class="net" style="color:#0f8a8a">NTC3</span></td><td>(12, 1) → (28, 7)</td><td>cut 58 mm</td></tr>
+<tr><td>63</td><td>insulated</td><td><span class="net" style="color:#0f8a8a">NTC4</span></td><td>(11, 1) → (28, 10)</td><td>cut 64 mm</td></tr>
+<tr><td>64</td><td>insulated</td><td><span class="net" style="color:#0f8a8a">NTC5</span></td><td>(14, 1) → (28, 13)</td><td>cut 62 mm</td></tr>
+<tr><td>65</td><td>insulated</td><td><span class="net" style="color:#00897b">IN+</span></td><td>(17, 22) → (22, 22)</td><td>cut 28 mm</td></tr>
+<tr><td>66</td><td>insulated</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(27, 22) → (20, 17)</td><td>cut 37 mm</td></tr>
+<tr><td>67</td><td>insulated</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(11, 13) → (24, 22)</td><td>cut 55 mm</td></tr>
+<tr><td>68</td><td>insulated</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(14, 13) → (25, 22)</td><td>cut 51 mm</td></tr>
+<tr><td>69</td><td>insulated</td><td><span class="net" style="color:#d03b3b">3V3</span></td><td>(22, 16) → (28, 16)</td><td>cut 30 mm</td></tr>
+<tr><td>70</td><td>insulated</td><td><span class="net" style="color:#b07d00">SCL</span></td><td>(28, 18) → (25, 21)</td><td>cut 26 mm</td></tr>
+<tr><td>71</td><td>insulated</td><td><span class="net" style="color:#2a78d6">SDA</span></td><td>(28, 19) → (24, 21)</td><td>cut 26 mm</td></tr>
+<tr><td>72</td><td>insulated</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(1, 18) → (1, 1)</td><td>cut 58 mm</td></tr>
+<tr><td>73</td><td>insulated</td><td><span class="net" style="color:#c2185b">LOAD</span></td><td>(8, 1) → (5, 22)</td><td>cut 69 mm</td></tr>
+<tr><td>74</td><td>insulated</td><td><span class="net" style="color:#8e24aa">CHARGE</span></td><td>(7, 1) → (6, 22)</td><td>cut 68 mm</td></tr>
+<tr><td>75</td><td>insulated</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(2, 18) → (7, 22)</td><td>cut 31 mm</td></tr>
+<tr><td>76</td><td>insulated</td><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>(6, 1) → (11, 22)</td><td>cut 70 mm</td></tr>
+</tbody></table>
+</section>
+
+<section>
+<h2>10. Module pin orders</h2>
+<figure class=""><img src="figures/module-pinouts.svg" alt="Figure 11. The pin orders the board layouts assume."><figcaption>Figure 11. The pin orders the board layouts assume.</figcaption></figure>
+<h2 style="margin-top:8mm">11. Enclosure layout</h2>
+<figure class=""><img src="figures/enclosure.svg" alt="Figure 12. Vented PETG enclosure: pack bay, power side, sensing side, vent path."><figcaption>Figure 12. Vented PETG enclosure: pack bay, power side, sensing side, vent path.</figcaption></figure>
+</section>
+
+<section>
+<h2>12. Assembly, step by step</h2>
+<h3>Board A</h3>
+<ol>
+<li>Mark the top-left corner of the component side with a pen, so the hole coordinates stay the right way round.</li>
+<li>Fit and solder the low parts first: R1–R12, then C1–C4. Leave D1–D4 empty: the clamp part is chosen after the
+Gate 1 leakage test.</li>
+<li>Fit J1, the 1 × 10 female header J2 and the 4-pin header J3.</li>
+<li>Underside: lay the two long buses (GND column 15, 3V3 column 17) as bare wire, then every bare bridge of the wiring
+list, then the insulated links. Tick each line of the wiring list as you go.</li>
+<li>Clean the flux off with isopropyl alcohol: residue leaks current across the 330 kΩ dividers.</li>
+<li>Do the checks of section 13 before fitting the ADS1115.</li>
+</ol>
+<h3>Board B</h3>
+<ol>
+<li>Fit R1–R8, C1–C5 and LED1 (flat side, the cathode, towards column 17).</li>
+<li>Fit the headers: two 1 × 15 female headers for the ESP32 (dry-fit the DevKit first: most have their rows
+25.4 mm, 10 holes, apart), the 1 × 8 female header J8, J5, J6, J7, J14, the five 2-pin JST sockets and the screw
+terminal J4.</li>
+<li>Underside: the rails (3V3 along row 16 and column 21, GND along row 19 and column 25), then the bridges, then the
+insulated links.</li>
+<li>Clean the flux, then do the checks of section 13 before plugging in the ESP32 or the INA226.</li>
+</ol>
+<h3>Then, gate by gate</h3>
+<ol>
+<li>Gate 1: plug in the ESP32, the ADS1115 and the INA226, join J3 to J7, flash the firmware, calibrate (section 14).</li>
+<li>Gate 2: set the LM2596 to 5.00 V with nothing connected and load-test it; then wire J4, the relay module (J5) and
+the buzzer (J6).</li>
+<li>Gates 3–8: the BMS harness, cell matching, welding and the first power-up, as the safe build sequence says.</li>
+</ol>
+</section>
+
+<section>
+<h2>13. Checks before power</h2>
+<p>With a multimeter, with no modules plugged in and the clamps not fitted. A reading far from the value means a wrong
+part or a missing or extra bridge: find it before going on.</p>
+<h3>Board A: resistance</h3>
+<table class=""><thead><tr><th>Between</th><th>Expected</th><th>Why</th></tr></thead><tbody>
+<tr><td>J1 B1 → J3 GND (and B2, B3, B+ on their channels)</td><td>386 kΩ</td><td>330 kΩ + 56 kΩ</td></tr>
+<tr><td>J1 B1 → J1 B2 (and each neighbouring pair)</td><td>772 kΩ</td><td>no tap is shorted to another</td></tr>
+<tr><td>J2 A0 → J3 GND (and A1, A2, A3)</td><td>66 kΩ</td><td>10 kΩ + 56 kΩ</td></tr>
+<tr><td>J1 B1 → J2 A0</td><td>340 kΩ</td><td>330 kΩ + 10 kΩ</td></tr>
+<tr><td>J3 3V3 → J3 GND</td><td>open</td><td>before the clamps are fitted</td></tr>
+<tr><td>J1 B− → anything</td><td>open</td><td>B− is not connected on the board</td></tr>
+</tbody></table>
+<h3>Board B: resistance</h3>
+<table class=""><thead><tr><th>Between</th><th>Expected</th><th>Why</th></tr></thead><tbody>
+<tr><td>J7 3V3 → J7 GND, J4 +5V → J4 GND, J4 +5V → J7 3V3</td><td>open</td><td>no short between supplies</td></tr>
+<tr><td>J9 T → J7 3V3 (and J10–J13 T)</td><td>10 kΩ</td><td>NTC pull-ups R1–R5</td></tr>
+<tr><td>J5 IN1 → J7 3V3, J5 IN2 → J7 3V3</td><td>10 kΩ</td><td>relay pull-ups R6, R7</td></tr>
+<tr><td>J6 I/O → J6 GND, meter on diode test (red on I/O)</td><td>about 2 V (1.8–2.4 V)</td><td>the LED's forward voltage plus R8 (the LED may glow)</td></tr>
+<tr><td>J14 IN+ → J14 IN−</td><td>open</td><td>the sense pair is not shorted</td></tr>
+</tbody></table>
+<h3>Continuity: every pin that must be joined</h3>
+<p>Board A</p>
+<table class=""><thead><tr><th>Net</th><th>Pins</th><th>Reading</th></tr></thead><tbody>
+<tr><td><span class="net" style="color:#d03b3b">3V3</span></td><td>J2 VDD, J3 3V3</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#2b2b2b">GND</span></td><td>J2 GND, J2 ADDR, J3 GND</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#b07d00">SCL</span></td><td>J2 SCL, J3 SCL</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#2a78d6">SDA</span></td><td>J2 SDA, J3 SDA</td><td>0 Ω (beeps)</td></tr>
+</tbody></table>
+<p>Board B</p>
+<table class=""><thead><tr><th>Net</th><th>Pins</th><th>Reading</th></tr></thead><tbody>
+<tr><td><span class="net" style="color:#d03b3b">3V3</span></td><td>U1 3V3, J8 VCC, J7 3V3</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#e07b00">5V</span></td><td>U1 VIN, J4 +5V, J5 VCC, J6 VCC</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>U1 D27, J6 I/O</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#8e24aa">CHARGE</span></td><td>U1 D26, J5 IN2</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#2b2b2b">GND</span></td><td>U1 GND, U1 GND, J9 G, J10 G, J11 G, J12 G, J13 G, J8 GND, J7 GND, J4 GND, J5 GND, J6 GND</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#00897b">IN+</span></td><td>J8 IN+, J14 IN+</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#00695c">IN-</span></td><td>J8 VBS, J8 IN-, J14 IN-</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#c2185b">LOAD</span></td><td>U1 D25, J5 IN1</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC1</span></td><td>U1 D32, J9 T</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC2</span></td><td>U1 D33, J10 T</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC3</span></td><td>U1 D34, J11 T</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC4</span></td><td>U1 D35, J12 T</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC5</span></td><td>U1 VP, J13 T</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#b07d00">SCL</span></td><td>U1 D22, J8 SCL, J7 SCL</td><td>0 Ω (beeps)</td></tr>
+<tr><td><span class="net" style="color:#2a78d6">SDA</span></td><td>U1 D21, J8 SDA, J7 SDA</td><td>0 Ω (beeps)</td></tr>
+</tbody></table>
+</section>
+
+<section>
+<h2>14. Bring-up, gate by gate</h2>
+<p>The full procedure is in <code>docs/bring-up.md</code>; the pass and stop rules are in the safe build sequence.</p>
+<table class=""><thead><tr><th>Gate</th><th>What</th><th>Firmware and tools</th><th>Pass when</th></tr></thead><tbody>
+<tr><td>0</td><td>Design frozen</td><td>Build the firmware once; measure the charger plug</td><td>every part has a purpose and rating</td></tr>
+<tr><td>1</td><td>Sensing, no cells</td><td><code>raw</code>, <code>cal</code>, tools/calibrate.py</td><td>taps ±20 mV; current ±2 % or ±20 mA; every NTC fault detected</td></tr>
+<tr><td>2</td><td>Relays fail-safe</td><td>bench build: <code>sim on</code>, <code>test hang</code>, <code>test crash</code></td><td>both contacts open on power-off, boot, reset, watchdog, I2C loss</td></tr>
+<tr><td>3</td><td>BMS harness</td><td>bench channels; <code>status</code></td><td>tap order and polarity; each cutoff opens only its branch</td></tr>
+<tr><td>4</td><td>Cell matching</td><td><code>model r0 …</code></td><td>20 mV, 3 % capacity, 10 % resistance</td></tr>
+<tr><td>5–7</td><td>Mechanics, weld, pack</td><td>none</td><td>no conductor can rub a cell; sound welds</td></tr>
+<tr><td>8</td><td>First power-up</td><td><code>status</code>, tools/serial_log.py</td><td>stable readings at rest for 30 min</td></tr>
+<tr><td>9</td><td>Controlled discharge</td><td>tools/fit_thermal.py, <code>model thermal …</code></td><td>abnormal heat < 0.25 °C/min; 5-min error ≤ 0.5 °C RMS</td></tr>
+<tr><td>10</td><td>Controlled charge</td><td>tools/ocv_table.py, <code>model ocv …</code></td><td>no unexpected 4.15 V; CC/CV taper</td></tr>
+<tr><td>11</td><td>Predictive layer</td><td><code>bms_sim run all</code>; dummy heater; 47 Ω soft short</td><td>warnings and trips as the architecture says</td></tr>
+<tr><td>12</td><td>Enclosure and release</td><td>normal build, model fitted</td><td>every gate signed; guide accepts</td></tr>
+</tbody></table>
+<h3>Firmware and tools</h3>
+<ul>
+<li>Build and flash: <code>idf.py build</code>, <code>idf.py -p PORT flash monitor</code> (ESP-IDF v5.5).</li>
+<li>Serial console at 115200 baud: <code>status</code>, <code>raw</code>, <code>cal …</code>, <code>model …</code>,
+<code>log 1</code>, <code>reset</code>, <code>test hang</code>, <code>test crash</code>, <code>wifi off</code>.</li>
+<li>Dashboard over Wi-Fi: the ESP32's own access point "PredictiveBMS", http://192.168.4.1/. Every protection works
+with Wi-Fi off.</li>
+</ul>
+</section>
+
+<section>
+<h2>15. The simulation</h2>
+<p>Before any cell is connected, the supervisor is tested against a simulated 4S pack: the same code that runs on the
+ESP32, with cells, heat, a hardware BMS, sensors with noise, and every fault Gate 11 asks for. A second copy of the
+pack runs alongside with only fixed limits, as a conventional BMS has, to show what the predictive layer adds.
+Start it with <code>python3 tools/demo.py</code>; it opens the dashboard in the browser.</p>
+<figure class="snap"><img src="snapshots/normal-charts.png" alt="Figure 13. Normal use: cell temperatures, abnormal heat near zero, and each 5-minute forecast drawn against the reading it predicted."><figcaption>Figure 13. Normal use: cell temperatures, abnormal heat near zero, and each 5-minute forecast drawn against the reading it predicted.</figcaption></figure>
+<figure class="snap"><img src="snapshots/defect-story.png" alt="Figure 14. A guided demonstration: a cell defect under a 3 A load. The narration follows each step; the result is measured by the simulator."><figcaption>Figure 14. A guided demonstration: a cell defect under a 3 A load. The narration follows each step; the result is measured by the simulator.</figcaption></figure>
+</section>
+<section>
+<figure class="snap"><img src="snapshots/defect-compare.png" alt="Figure 15. The same run against a fixed-limit BMS on the same pack: the predictive layer acts minutes earlier, with the cell far cooler."><figcaption>Figure 15. The same run against a fixed-limit BMS on the same pack: the predictive layer acts minutes earlier, with the cell far cooler.</figcaption></figure>
+<figure class="snap"><img src="snapshots/defect-charts.png" alt="Figure 16. Charts of that run. The defective cell (cell 2) is cut off early and cools; the fixed-limit pack&#x27;s hottest cell (dashed) climbs to 55 °C."><figcaption>Figure 16. Charts of that run. The defective cell (cell 2) is cut off early and cools; the fixed-limit pack's hottest cell (dashed) climbs to 55 °C.</figcaption></figure>
+<figure class="snap"><img src="snapshots/runaway-compare.png" alt="Figure 17. Thermal runaway onset (heat inside a cell that grows as it warms): the warning comes minutes before a 55 °C limit. Heat made inside a cell does not stop when the pack is disconnected; the gain is warning time."><figcaption>Figure 17. Thermal runaway onset (heat inside a cell that grows as it warms): the warning comes minutes before a 55 °C limit. Heat made inside a cell does not stop when the pack is disconnected; the gain is warning time.</figcaption></figure>
+</section>
+<section>
+<figure class="snap"><img src="snapshots/heat-diagram.png" alt="Figure 18. Live system diagram after a trip: cell colours follow temperature; both relays open and latched; alarm on."><figcaption>Figure 18. Live system diagram after a trip: cell colours follow temperature; both relays open and latched; alarm on.</figcaption></figure>
+<figure class="snap"><img src="snapshots/short-cells.png" alt="Figure 19. Cell cards at the end of the Gate 11 soft-short demonstration: the leak estimate, the energy cross-check and the confirmation on cell 2."><figcaption>Figure 19. Cell cards at the end of the Gate 11 soft-short demonstration: the leak estimate, the energy cross-check and the confirmation on cell 2.</figcaption></figure>
+<figure class="snap"><img src="snapshots/verification.png" alt="Figure 20. Verification: every scenario with its checks, run from the dashboard."><figcaption>Figure 20. Verification: every scenario with its checks, run from the dashboard.</figcaption></figure>
+</section>
+<section>
+<h3>Results of the guided demonstrations</h3>
+<table class="demo"><thead><tr><th>Demonstration</th><th>What the simulator showed</th></tr></thead><tbody>
+<tr><td><b>Normal use</b></td><td>Highest risk level: Normal.<br>Largest abnormal heat: 0.06 °C/min (the Gate 9 limit for healthy use is 0.25).<br>5-minute forecast error: 0.11, 0.12, 0.12, 0.11 °C RMS for cells 1–4 (Gate 9 asks for 0.5 or less).</td></tr>
+<tr><td><b>Heat with no current</b></td><td>Trip: predictive layer, 58 s after the heat began, with cell 2 at 26.0 °C.<br>Both relays are open and latched; the alarm is on.<br>A fixed-limit BMS: no reaction; hottest cell 27.4 °C, far below 55 °C.</td></tr>
+<tr><td><b>A cell that overheats under load</b></td><td>Predictive layer: trip 112 s after the fault began, hottest cell 28.1 °C.<br>Fixed-limit BMS: trip 6.8 min after the fault began, at 55.2 °C (55 C cell temperature).<br>5.0 min earlier, 27.1 °C cooler.</td></tr>
+<tr><td><b>Soft internal short (Gate 11)</b></td><td>Leak estimate, cell 2: 73.4 mA (the resistor drew about 79 mA); the other cells showed none.<br>Energy cross-check while the resistor was on: agree.<br>Level reached: Warning, from thermal and electrical evidence agreeing. No trip: a soft fault raises the alarm and keeps both branches on.<br>A fixed-limit BMS: no reaction; the cell warmed only a few degrees.</td></tr>
+<tr><td><b>Thermal runaway onset</b></td><td>Predictive layer: trip 7.9 min after the fault began, hottest cell 29.2 °C.<br>Fixed-limit BMS: trip 11.6 min after the fault began, at 55.1 °C (55 C cell temperature).<br>3.7 min earlier, 25.9 °C cooler.<br>Disconnecting does not stop heat made inside a cell; the alarm gives people time to isolate the pack.</td></tr>
+<tr><td><b>A temperature sensor lifts off</b></td><td>Fault: NTC lifted off its cell, 6 s after the sensor lifted.<br>Both branches opened: with a sensor it cannot trust, the supervisor does not guess.<br>The other cells were not blamed.</td></tr>
+<tr><td><b>Hot day, high current</b></td><td>The load stopped at 55 °C cell temperature; only the load branch opened, so charging stays possible.<br>Safe continuous current at the end: 4.03 A.</td></tr>
+<tr><td><b>One cell reaches 4.15 V</b></td><td>Trip: cell above 4.15 V.<br>Charge relay open, load relay closed: each limit opens only its own branch.</td></tr>
+<tr><td><b>Controller crash</b></td><td>The events show the latch, the refused reset and the accepted reset.<br>Relays now: load closed, charge closed.</td></tr>
+</tbody></table>
+<p>The verification scenarios, all 30 of them, are listed in <code>docs/simulator.md</code>; each one rehearses a gate
+test with the gate's own pass criteria.</p>
+</section>
+
+<section>
+<h2>16. Safety rules</h2>
+<div class="safety">
+<ul>
+<li>No lithium cell is connected before Gate 3. The first live power-up and the first charge are never done alone.</li>
+<li>Never drive a live cell into thermal runaway, overcharge or over-discharge to prove a limit. Limits are proven with
+simulated signals, the simulator, a heated dummy, and the supervised 47 Ω resistor of Gate 11.</li>
+<li>Never solder to a cell terminal. Reject any cell that is swollen, dented, rusty, leaking, warm or smelling.</li>
+<li>Work on a non-conductive bench with eye protection, rings and watches off, every exposed terminal covered except
+the one being worked on, and a lithium-battery fire plan and sand bucket at hand.</li>
+<li>The hardware BMS stays connected as the final backstop; nothing in the firmware overrides it.</li>
+<li>The enclosure is vented and is not a fire enclosure: never seal it.</li>
+</ul>
+</div>
+</section>
+</body></html>

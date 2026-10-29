@@ -3,19 +3,19 @@
 The simulator runs the supervisor core, the same code as the ESP32, against a simulated 4S1P
 pack. It does three jobs:
 
-1. **Tests.** 29 scenarios rehearse the Gate 9, 10 and 11 tests and the sensor failures of
+1. **Tests.** 30 scenarios rehearse the Gate 9, 10 and 11 tests and the sensor failures of
    section 10, each with checks taken from the gate's pass criteria. They run as part of `ctest`.
 2. **Software validation first.** Gate 11 step 1 asks to "validate software first with recorded
    traces and synthetic ramps". The scenarios are that step, done before any cell is connected.
-3. **A live demonstration.** `tools/sim_server.py` puts the dashboard on a running simulation, with
-   buttons that inject faults.
+3. **A live demonstration.** `tools/demo.py` puts the dashboard on a running simulation, with nine
+   guided demonstrations, a comparison with a fixed-limit BMS, and buttons that inject faults.
 
 ```bash
 cmake -S host -B build/host && cmake --build build/host
 build/host/bms_sim list                    # the scenarios
 build/host/bms_sim run all                 # every scenario with its checks
 build/host/bms_sim run soft_short --csv soft_short.csv   # one scenario, with its 1 Hz log
-python3 tools/sim_server.py --speed 10     # dashboard at http://127.0.0.1:8080/
+python3 tools/demo.py                      # dashboard at http://127.0.0.1:8080/
 ```
 
 ## 1. The plant
@@ -31,7 +31,7 @@ takes a value from them.
 | Hardware BMS | cuts the pack at 4.25 V or 2.7 V per cell; bleeds 30 mA from a cell above 4.18 V |
 | Relays and charger | the load draws its current only while K_LOAD is closed; the charger is CC/CV (16.8 V) and flows only while K_CHARGE is closed |
 | Sensors | divider ratios drawn from 1 % resistors; ADS1115 125 µV steps and noise; INA226 2.5 µV steps and noise; NTC voltages with 1.5 mV noise |
-| Faults | abnormal heat in a core, constant or growing with temperature; the Gate 11 resistor across a cell's taps (it drains the cell and heats its can); an internal soft short; a lifted, open, shorted or stuck NTC; an NTC offset (a simulated signal); ADS1115 or INA226 bus loss; single-sample spikes; a crash and restart |
+| Faults | abnormal heat in a core, constant or growing with temperature; a cell defect that adds resistance and heats under load; the Gate 11 resistor across a cell's taps (it drains the cell and heats its can); an internal soft short; a lifted, open, shorted or stuck NTC; an NTC offset (a simulated signal); ADS1115 or INA226 bus loss; single-sample spikes; a crash and restart |
 
 ## 2. Scenarios
 
@@ -49,6 +49,7 @@ off.
 | `small_fault` | 11 | 0.2 W in a cell: the 5-minute confirmation (+1 °C) raises Watch |
 | `cell_outlier` | 11 | 0.55 W in one cell under 2 A: trips on the cell-to-cell difference |
 | `self_acceleration` | 11 | heat growing with temperature in every cell: self-acceleration trip |
+| `load_defect` | 11 | a cell defect heating under 3 A: trips below 35 °C, then the cell cools |
 | `soft_short` | 11 | 47 Ω across cell 2: leak, heat and confirmation agree; Warning |
 | `internal_leak` | 11 | 25 mA internal leak: found electrically, Watch only |
 | `forecast_hot_day` | 9 | 4.6 A at 35 °C: safe-current and time-to-limit Watch, then the load trip |
@@ -67,7 +68,7 @@ off.
 | `reset_rules` | 2 | latches hold through restarts; reset only when the rules allow |
 | `fit_log` | 9 | 1 A and 2 A discharges with cooling curves, model off: the data for the Gate 9 fit |
 
-All 29 pass. Some results from the run:
+All 30 pass. Some results from the run:
 
 | Result | Value | Target |
 | --- | --- | --- |
@@ -81,7 +82,30 @@ All 29 pass. Some results from the run:
 | 25 mA internal leak: estimate | 23 mA | ≥ 20 mA raises Watch |
 | Sensor faults | latched at 2.0 s (stuck NTC: 62 s) | 2 s persistence |
 
-## 3. What the simulator found
+## 3. Guided demonstrations and the fixed-limit comparison
+
+The dashboard runs nine guided demonstrations, each on a fresh pack, with narration. In live mode
+the simulator also runs a second copy of the pack with the same load and the same faults,
+protected only by fixed limits (cell voltage, current, 45 °C while charging, 55 °C), as a
+conventional BMS is. It reads the true cell temperatures, which is generous to it. Results of a
+run (`docs/build-guide/snapshots.py` repeats it in a browser; the moment a fault starts depends on
+the page's polling, so times vary by a few seconds between runs):
+
+| Demonstration | This project | Fixed-limit BMS |
+| --- | --- | --- |
+| Heat with no current, 1 W in cell 2 | trip after about 1 minute, cell at 26 °C | no reaction |
+| A cell defect under 3 A | trip after 111 s, cell at 28.0 °C; the cell then cools | trip after 6.8 min, at 55.1 °C |
+| Thermal runaway onset (heat inside cell 3, growing as it warms) | trip after 7.9 min, cell at 29.2 °C | trip after 11.5 min, at 55.0 °C |
+| Soft internal short, 47 Ω (Gate 11) | Warning, leak 73 mA against 79 mA drawn, cross-check agrees | no reaction |
+| NTC lifted off its cell under 3 A | sensor fault within 10 s | no reaction |
+| Normal use (discharge, rest, charge) | Normal throughout; 5-minute error 0.11–0.12 °C RMS | – |
+
+For heat made inside a cell (an internal short, the start of runaway) no BMS can stop the heat
+by disconnecting the pack: in both copies the cell keeps heating. What the predictive layer gives
+there is warning time. Where the heat comes from the current (the defect), cutting the current
+early stops it, and the cell stays cool.
+
+## 4. What the simulator found
 
 These are results about the method, not about the real cells. Each one names the gate where the
 real pack answers it.
@@ -97,7 +121,7 @@ temperature to 0.025 °C RMS, but gives a total heat capacity of 30.5 J/°C wher
 time constant and its temperature rise per watt; heat capacity, r_core, r_air and any missing
 heat trade against each other. Fixing the heat capacity from the cells' mass does not help: the
 fit is equally good at 40, 45 or 50 J/°C. This is what the architecture expects ("the fit absorbs
-it"), and the fitted model still predicts accurately. With the fitted values loaded, 28 of the 29
+it"), and the fitted model still predicts accurately. With the fitted values loaded, 29 of the 30
 scenarios pass. The exception is `heat_warning`. The fitted model reads abnormal heat about 20 %
 high in °C/min, so a steady 0.41 W fault, inside the narrow band where the architecture holds it
 at Warning (0.375–0.45 W), trips on the cell-to-cell rule instead. That is the safe direction.

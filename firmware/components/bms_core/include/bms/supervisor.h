@@ -119,6 +119,7 @@ class Supervisor {
   void snapshot(Snapshot& s) const;
   const Measurements& measurements() const { return front_.last(); }
   State state() const { return state_; }
+  int risk() const { return pack_risk_; }   // section 9.8 level of the pack, 0-3
 
  private:
   void run_electrical(const Measurements& m);

@@ -627,9 +627,11 @@ void Supervisor::snapshot(Snapshot& s) const {
   s.n_trips = trip_n_;
   for (int k = 0; k < trip_n_; ++k)
     s.trips[k] = trip_log_[(trip_pos_ - trip_n_ + k + kTripLog) % kTripLog];
-  s.pack_v = m.pack_v;
-  s.current_a = m.current_a;
-  s.t_amb = m.temp_lp_c[cfg::kAmbient];
+  // A channel that has never read plausibly has no value yet (null in the JSON), not zero.
+  const bool taps_seen = m.ever_valid[kChTaps];
+  s.pack_v = taps_seen ? m.pack_v : NAN;
+  s.current_a = m.ever_valid[kChCurrent] ? m.current_a : NAN;
+  s.t_amb = m.ever_valid[kChNtc0 + cfg::kAmbient] ? m.temp_lp_c[cfg::kAmbient] : NAN;
   s.t_trip = mode_ == Mode::Charge ? cfg::kChargeTempTripC : cfg::kDischargeTempTripC;
   for (int ch = 0; ch < kChannelCount; ++ch) {
     s.ch_invalid[ch] = m.invalid[ch];
@@ -648,14 +650,15 @@ void Supervisor::snapshot(Snapshot& s) const {
   for (int i = 0; i < cfg::kCells; ++i) {
     CellSnapshot& c = s.cells[i];
     c = CellSnapshot();
-    c.v = m.cell_v[i];
+    const bool ntc_seen = m.ever_valid[kChNtc0 + i];
+    c.v = taps_seen ? m.cell_v[i] : NAN;
     s.raw_tap_v[i] = m.raw_tap_v[i];
     c.r_model_ohm = r_model_[i];
     c.r_avg_ohm = resist_.average_r(i);
     c.r_steps = resist_.steps(i);
     c.r_drift = resist_.drift(i);
-    c.t_meas = m.temp_c[i];
-    c.t_lp = m.temp_lp_c[i];
+    c.t_meas = ntc_seen ? m.temp_c[i] : NAN;
+    c.t_lp = ntc_seen ? m.temp_lp_c[i] : NAN;
     c.rise = m.rise_c_per_min[i];
     c.rise_valid = m.rise_valid[i];
     if (running) {

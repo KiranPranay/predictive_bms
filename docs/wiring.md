@@ -14,8 +14,8 @@ connected before Gate 3, and the pack is not welded before Gate 7.
 | --- | --- | --- |
 | Pack | 4 × NCR18650GA in a 4S1P row, spot-welded nickel, spacers, fish paper, sleeve, 4 cell NTCs bonded mid-body | lower part of the enclosure |
 | Power side | hardware BMS, 7.5 A blade fuse in its inline holder, 5 mΩ shunt, relay module, LM2596, XT60 load and charge connectors | one side of the enclosure |
-| Board A, sense | 4 tap dividers with filters and clamps, 5 NTC dividers, ADS1115, INA226 | the other side, away from the relay contacts |
-| Board B, control | ESP32 DevKit, relay input pull-ups, alarm buzzer and LED | next to board A |
+| Board A, cell taps | 4 tap dividers with filters and clamps, ADS1115 | the other side, away from the relay contacts |
+| Board B, control | ESP32 DevKit, 5 NTC dividers, INA226, relay input pull-ups, alarm buzzer and LED | next to board A |
 | Air sensor | NTC5 in free air in the vent path, away from the cells, the LM2596 and the relays | vent |
 
 Section 11 rules: fuse at the B+ exit, then the shunt, then the branch wiring; BMS and boards on
@@ -56,7 +56,7 @@ P-, a hardware BMS cut-off still removes controller power (section 4).
 Charge connector: a barrel adapter matched to the measured charger plug (BOM item 22, **TBD**
 until the charger's plug and polarity are measured at Gate 0).
 
-## 3. Board A: sense
+## 3. Board A: cell taps and the ADS1115
 
 ### 3.1 Cell taps (section 5)
 
@@ -95,7 +95,48 @@ current flows. That drop adds to the reading of cell 1 only (cells 2 to 4 are di
 taps), and the online resistance of cell 1 includes it. Check it at Gate 9: under a 2 A load,
 compare the firmware's cell 1 voltage with a meter across cell 1.
 
-### 3.2 NTCs (section 6)
+### 3.2 ADS1115 and the link to board B
+
+| ADS1115 pin | Connect to |
+| --- | --- |
+| VDD / GND | 3V3 / GND |
+| SCL / SDA | GPIO22 / GPIO21 |
+| ADDR | GND (address 0x48, the firmware default) |
+| ALRT | not connected |
+
+Add 4.7 kΩ pull-ups from SDA and SCL to 3V3 only if neither module has them fitted (section 7).
+Check with `raw` on the console at Gate 1. If the addresses differ, change them in
+`idf.py menuconfig` → Predictive BMS.
+
+Board A's J3 joins board B's J7 with a 4-wire cable: 3V3, GND, SCL, SDA, in the same order at
+both ends.
+
+J1 pin 1 (B-) is deliberately not connected on board A. Joining B- to the electronics ground
+would join B- and P- through a thin wire and bypass the hardware BMS's switch.
+
+## 4. Board B: ESP32, temperatures, current, relays and alarm
+
+### 4.1 ESP32 and its outputs
+
+| Function | ESP32 pin | Wiring |
+| --- | --- | --- |
+| Load relay K_LOAD | GPIO25 | relay module IN1; 10 kΩ pull-up from IN1 to 3V3 |
+| Charge relay K_CHARGE | GPIO26 | relay module IN2; 10 kΩ pull-up from IN2 to 3V3 |
+| Alarm | GPIO27 | buzzer module input, and the red LED through its resistor to GND |
+| Manual reset | GPIO0 (BOOT button) | the DevKit's own button: hold 3 s |
+| Power | VIN | LM2596 5.00 V output; set and load-test it before connecting (Gate 2) |
+
+- Relays are **active LOW**: the firmware drives a pin LOW to close a contact. A floating or HIGH
+  input leaves the contact open, so reset, a crash, or an unpowered ESP32 all leave both branches
+  open (section 3).
+- The relay module runs at 5 V while the ESP32 drives 3.3 V logic. With a 3.3 V pull-up, check at
+  Gate 2 that the module's input really releases at 3.3 V. If a relay energises during reset or
+  stays partly on, add a transistor stage that guarantees a de-energised start (section 7).
+- Never switch the relays with PWM. They are disconnects.
+- Red LED resistor: (3.3 V - LED forward voltage) / the LED current you want; from stock (BOM
+  item 25). Set `CONFIG_BMS_ALARM_ACTIVE_LOW` in menuconfig if the buzzer module sounds on LOW.
+
+### 4.2 NTCs (section 6)
 
 Five identical dividers. Bond NTC1–4 at the middle of each cell can with electrically insulating,
 thermally conductive tape, never on bare nickel. NTC5 hangs in free air in the vent path.
@@ -118,7 +159,7 @@ Only ADC1 pins: ADC2 does not work while Wi-Fi is on. GPIO34–36 are input-only
 NTC needs. Use a two-pin connector per NTC so a sensor can be replaced without soldering at the
 pack.
 
-### 3.3 Current (section 4)
+### 4.3 Current (section 4)
 
 | INA226 module pin | Connect to |
 | --- | --- |
@@ -134,39 +175,8 @@ pack.
 - Kelvin wiring: the two sense leads leave the shunt's own pads, twisted together, kept away from
   the relay contacts and the power current loop (section 11).
 - Address: A0 and A1 to GND gives 0x40, the firmware default.
-
-### 3.4 I2C bus
-
-| ADS1115 pin | Connect to |
-| --- | --- |
-| VDD / GND | 3V3 / GND |
-| SCL / SDA | GPIO22 / GPIO21 |
-| ADDR | GND (address 0x48, the firmware default) |
-| ALRT | not connected |
-
-Add 4.7 kΩ pull-ups from SDA and SCL to 3V3 only if neither module has them fitted (section 7).
-Check with `raw` on the console at Gate 1. If the addresses differ, change them in
-`idf.py menuconfig` → Predictive BMS.
-
-## 4. Board B: control
-
-| Function | ESP32 pin | Wiring |
-| --- | --- | --- |
-| Load relay K_LOAD | GPIO25 | relay module IN1; 10 kΩ pull-up from IN1 to 3V3 |
-| Charge relay K_CHARGE | GPIO26 | relay module IN2; 10 kΩ pull-up from IN2 to 3V3 |
-| Alarm | GPIO27 | buzzer module input, and the red LED through its resistor to GND |
-| Manual reset | GPIO0 (BOOT button) | the DevKit's own button: hold 3 s |
-| Power | VIN | LM2596 5.00 V output; set and load-test it before connecting (Gate 2) |
-
-- Relays are **active LOW**: the firmware drives a pin LOW to close a contact. A floating or HIGH
-  input leaves the contact open, so reset, a crash, or an unpowered ESP32 all leave both branches
-  open (section 3).
-- The relay module runs at 5 V while the ESP32 drives 3.3 V logic. With a 3.3 V pull-up, check at
-  Gate 2 that the module's input really releases at 3.3 V. If a relay energises during reset or
-  stays partly on, add a transistor stage that guarantees a de-energised start (section 7).
-- Never switch the relays with PWM. They are disconnects.
-- Red LED resistor: (3.3 V - LED forward voltage) / the LED current you want; from stock (BOM
-  item 25). Set `CONFIG_BMS_ALARM_ACTIVE_LOW` in menuconfig if the buzzer module sounds on LOW.
+- The Kelvin pair enters board B at J14, on the bottom edge beside the INA226, so it can be
+  plugged in with the module fitted. VBS is joined to IN- on the board.
 
 ## 5. Hardware BMS (layer A)
 
@@ -177,22 +187,22 @@ order. Never hot-plug an unverified harness (section 10).
 
 ## 6. Perfboard layout
 
-```text
-Board A (sense)                                   Board B (control)
-+--------------------------------------------+    +------------------------------------+
-| tap harness in   [R 330k/56k/10k x4]        |    | [ESP32 DevKit on female headers]   |
-| (JST, restrained) [100nF + clamp x4]        |    |  USB to the edge for the console   |
-|                   [ADS1115 module]  I2C ----+----+--> GPIO21/22                       |
-| NTC1-5 in        [10k + 100nF x5] ADC lines-+----+--> GPIO32-36                       |
-| shunt Kelvin pair [INA226 module]            |    | [10k pull-ups] IN1/IN2 to relays  |
-| 3V3 / GND from board B                       |    | [alarm LED + buzzer]  5 V in      |
-+--------------------------------------------+    +------------------------------------+
-   analog side of the enclosure                      next to the analog side; relay
-                                                     module and power wiring opposite
-```
+Both boards are drawn hole by hole, from the component side and from the underside, in the build
+guide: [build-guide/Build-Guide.pdf](build-guide/Build-Guide.pdf), sections 8 and 9, with a
+placement table, a numbered wiring list and the continuity checks for each board. The drawings
+are made from one description of each board ([build-guide/boards.py](build-guide/boards.py)) that
+is checked automatically: every net is joined and no two nets touch.
 
-- Keep the tap traces (up to 16.8 V) apart from the 3.3 V logic and from each other; leave a gap
-  of a few holes and cut unused strips.
+| Figure | File |
+| --- | --- |
+| Board A, component side and underside | [board-a-top.svg](build-guide/figures/board-a-top.svg), [board-a-bottom.svg](build-guide/figures/board-a-bottom.svg) |
+| Board B, component side and underside | [board-b-top.svg](build-guide/figures/board-b-top.svg), [board-b-bottom.svg](build-guide/figures/board-b-bottom.svg) |
+| Single-line diagram | [sld.svg](build-guide/figures/sld.svg) |
+| Circuits | [circuit-taps.svg](build-guide/figures/circuit-taps.svg), [circuit-ntc-current.svg](build-guide/figures/circuit-ntc-current.svg), [circuit-control.svg](build-guide/figures/circuit-control.svg) |
+| Wiring between the units | [wiring-overview.svg](build-guide/figures/wiring-overview.svg) |
+| Module pin orders, enclosure | [module-pinouts.svg](build-guide/figures/module-pinouts.svg), [enclosure.svg](build-guide/figures/enclosure.svg) |
+
+- Keep the tap lines (up to 16.8 V) apart from the 3.3 V logic and from each other.
 - Strain-relieve every wire that leaves a board.
 - Keep the NTC and tap lines away from the relay contacts and the LM2596.
 - The prototype has no PCB: the permanent board of Gate 12 is a carefully soldered perfboard

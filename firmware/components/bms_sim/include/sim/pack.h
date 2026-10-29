@@ -32,9 +32,13 @@ struct CellTruth {
   double internal_ohm = 0.0;       // internal soft short; its heat is inside the cell
   double external_ohm = 0.0;       // Gate 11 resistor across the cell's taps, bonded to the can
   double external_share = 0.8;     // share of the resistor's heat that enters the cell
+  double defect_ohm = 0.0;         // a defect (damaged tab, weak cell) adding resistance; its
+  double defect_growth_c = 0.0;    // heat I^2 R grows by exp((T_c - defect_ref_c) / growth)
+  double defect_ref_c = 25.0;      // as the cell warms; it stops when the current stops
 
   double ocv() const;
-  double abnormal_heat_w() const;
+  double abnormal_heat_w() const;           // heat that is there with or without current
+  double defect_heat_w(double i) const;     // extra heat of the defect at current i
 };
 
 enum class NtcMode : uint8_t { Normal, Open, Short, Stuck, Lifted };

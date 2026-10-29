@@ -1,0 +1,51 @@
+{
+  "errors": [],
+  "results": {
+    "verification": "30 of 30 pass \u00b7 1.4 s",
+    "normal": {
+      "seconds": 102,
+      "result": "Result\nHighest risk level: Normal.\nLargest abnormal heat: 0.06 \u00b0C/min (the Gate 9 limit for healthy use is 0.25).\n5-minute forecast error: 0.11, 0.12, 0.12, 0.11 \u00b0C RMS for cells 1\u20134 (Gate 9 asks for 0.5 or less).\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "No fault yet. Start a demonstration, or inject a fault with the simulator controls."
+    },
+    "heat": {
+      "seconds": 25,
+      "result": "Result\nTrip: predictive layer, 58 s after the heat began, with cell 2 at 26.0 \u00b0C.\nBoth relays are open and latched; the alarm is on.\nA fixed-limit BMS: no reaction; hottest cell 27.4 \u00b0C, far below 55 \u00b0C.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "The predictive layer acted 58 s after the fault began; the fixed-limit BMS has not reacted."
+    },
+    "defect": {
+      "seconds": 46,
+      "result": "Result\nPredictive layer: trip 112 s after the fault began, hottest cell 28.1 \u00b0C.\nFixed-limit BMS: trip 6.8 min after the fault began, at 55.2 \u00b0C (55 C cell temperature).\n5.0 min earlier, 27.1 \u00b0C cooler.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "The predictive layer acted 5.0 min earlier, with the hottest cell 27.1 \u00b0C cooler."
+    },
+    "short": {
+      "seconds": 51,
+      "result": "Result\nLeak estimate, cell 2: 73.4 mA (the resistor drew about 79 mA); the other cells showed none.\nEnergy cross-check while the resistor was on: agree.\nLevel reached: Warning, from thermal and electrical evidence agreeing. No trip: a soft fault raises the alarm and keeps both branches on.\nA fixed-limit BMS: no reaction; the cell warmed only a few degrees.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "The predictive layer has raised its level; the fixed-limit BMS sees nothing yet."
+    },
+    "runaway": {
+      "seconds": 56,
+      "result": "Result\nPredictive layer: trip 7.9 min after the fault began, hottest cell 29.2 \u00b0C.\nFixed-limit BMS: trip 11.6 min after the fault began, at 55.1 \u00b0C (55 C cell temperature).\n3.7 min earlier, 25.9 \u00b0C cooler.\nDisconnecting does not stop heat made inside a cell; the alarm gives people time to isolate the pack.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "The predictive layer acted 3.7 min earlier, with the hottest cell 25.9 \u00b0C cooler."
+    },
+    "sensor": {
+      "seconds": 49,
+      "result": "Result\nFault: NTC lifted off its cell, 6 s after the sensor lifted.\nBoth branches opened: with a sensor it cannot trust, the supervisor does not guess.\nThe other cells were not blamed.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "The predictive layer acted 6 s after the fault began; the fixed-limit BMS has not reacted."
+    },
+    "hot": {
+      "seconds": 52,
+      "result": "Result\nThe load stopped at 55 \u00b0C cell temperature; only the load branch opened, so charging stays possible.\nSafe continuous current at the end: 4.03 A.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "No fault was injected: the trip (55 \u00b0C cell temperature) is a fixed limit, which a conventional BMS has too."
+    },
+    "overcharge": {
+      "seconds": 19,
+      "result": "Result\nTrip: cell above 4.15 V.\nCharge relay open, load relay closed: each limit opens only its own branch.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "No fault was injected: the trip (cell above 4.15 V) is a fixed limit, which a conventional BMS has too."
+    },
+    "crash": {
+      "seconds": 80,
+      "result": "Result\nThe events show the latch, the refused reset and the accepted reset.\nRelays now: load closed, charge closed.\nThe simulation is paused. Restart to see it again, or choose another demonstration.",
+      "compare": "This project's supervisor (controller restart) acted 0 s after the fault began; the fixed-limit BMS has not reacted."
+    }
+  }
+}

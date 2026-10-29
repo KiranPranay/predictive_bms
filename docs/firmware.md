@@ -185,4 +185,4 @@ idf.py menuconfig                               # Predictive BMS: Wi-Fi, I2C add
 ```
 
 Any ESP-IDF v5.5 installation works the same way. The partition table is "single app, large";
-the image uses about 63 % of it.
+the image uses about two thirds of it.
