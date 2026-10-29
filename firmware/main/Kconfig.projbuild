@@ -1,0 +1,52 @@
+menu "Predictive BMS"
+
+    config BMS_WIFI_ENABLE
+        bool "Start Wi-Fi and the dashboard"
+        default y
+        help
+            Wi-Fi only carries the dashboard. Every protection works with it off.
+
+    config BMS_WIFI_SSID
+        string "Wi-Fi network to join (empty: start an access point)"
+        default ""
+
+    config BMS_WIFI_PASSWORD
+        string "Password of that network"
+        default ""
+
+    config BMS_AP_SSID
+        string "Access point name when no network is set"
+        default "PredictiveBMS"
+
+    config BMS_AP_PASSWORD
+        string "Access point password (8 characters or more)"
+        default "bms-prototype"
+
+    config BMS_ADS1115_ADDR
+        hex "ADS1115 I2C address"
+        default 0x48
+
+    config BMS_INA226_ADDR
+        hex "INA226 I2C address"
+        default 0x40
+
+    config BMS_I2C_HZ
+        int "I2C clock, Hz"
+        default 100000
+
+    config BMS_ALARM_ACTIVE_LOW
+        bool "The buzzer module sounds when its input is LOW"
+        default n
+        help
+            Check the module at Gate 2 and set this to match.
+
+    config BMS_BENCH_SIM
+        bool "Bench mode: allow a simulated pack as the sensor source (Gates 2 and 3 only)"
+        default n
+        help
+            Adds the console command "sim on". The supervisor then reads a simulated pack
+            while it still drives the real relays and alarm, so the relays can be tested on a
+            benign 12 V lamp before any cell is connected. "sim on" refuses when a real pack is
+            on the taps. Turn this off again before Gate 3 ends; a release build never has it.
+
+endmenu

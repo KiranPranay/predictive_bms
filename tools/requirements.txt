@@ -1,0 +1,5 @@
+# Tools for calibration, model fitting and the simulator dashboard.
+#   python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
+numpy>=1.26
+scipy>=1.11
+pyserial>=3.5

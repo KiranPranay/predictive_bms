@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictive BMS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='4' width='11' height='9' rx='1.5' fill='none' stroke='%232a78d6' stroke-width='1.6'/%3E%3Crect x='13' y='7' width='2' height='3' fill='%232a78d6'/%3E%3Cpath d='M5 9.5h2l1-3 1 4.5 1-1.5h1' fill='none' stroke='%23eb6834' stroke-width='1.3'/%3E%3C/svg%3E">
+<style>
+/* One page for the ESP32 and the simulator. No external files: the ESP32's access point has no
+   internet. Colours: validated categorical slots 1-4 for the cells; status colours for risk,
+   always with an icon and a word. */
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ee;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --amb: #898781;
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --on-status: #ffffff; --on-warn: #0b0b0b;
+  --sim: #6250d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
+    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --amb: #898781;
+    --sim: #9085e9;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
+  --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --amb: #898781;
+  --sim: #9085e9;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+h1 { font-size: 18px; margin: 0; font-weight: 650; }
+h2 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: var(--ink-2);
+  text-transform: uppercase; letter-spacing: .04em; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.spread { justify-content: space-between; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+header.card { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; border: 1px solid var(--ring); background: var(--surface-2); color: var(--ink); }
+.badge svg { width: 14px; height: 14px; }
+.st-0 { background: var(--good); color: var(--on-status); border-color: transparent; }
+.st-1 { background: var(--warn); color: var(--on-warn); border-color: transparent; }
+.st-2 { background: var(--serious); color: var(--on-status); border-color: transparent; }
+.st-3 { background: var(--critical); color: var(--on-status); border-color: transparent; }
+.badge.sim { background: var(--sim); color: #fff; border-color: transparent; }
+.badge.lost { background: var(--critical); color: #fff; }
+.hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.tile { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+.tile .k { font-size: 12px; color: var(--ink-2); }
+.tile .v { font-size: 22px; font-weight: 600; }
+.tile .v small { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.risk-hero { display: flex; align-items: center; gap: 12px; }
+.risk-hero .badge { font-size: 16px; padding: 6px 14px; }
+.risk-hero .badge svg { width: 18px; height: 18px; }
+.relay { font-weight: 600; }
+.relay.on { color: var(--good); }
+.relay.off { color: var(--ink-2); }
+.cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.cell h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.kv { display: grid; grid-template-columns: minmax(120px, 46%) minmax(0, 1fr); gap: 3px 12px; margin-top: 8px; font-size: 13px; }
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kv .sep { grid-column: 1 / -1; border-top: 1px solid var(--grid); margin: 4px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.chip { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2);
+  border: 1px solid var(--ring); color: var(--ink-2); }
+.verdict-normal { color: var(--good); font-weight: 600; }
+.verdict-hot, .verdict-cold { color: var(--critical); font-weight: 600; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 12px; }
+@media (max-width: 480px) { .charts { grid-template-columns: 1fr; } }
+.chart { position: relative; }
+.chart svg { width: 100%; height: 240px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  display: none; white-space: nowrap; z-index: 2; }
+.tip b { font-weight: 600; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
+@media (max-width: 420px) { .two { grid-template-columns: 1fr; } }
+.list { margin: 0; padding: 0; list-style: none; max-height: 260px; overflow: auto; font-size: 13px; }
+.list li { padding: 5px 0; border-bottom: 1px solid var(--grid); display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; }
+.list .k-trip { color: var(--critical); font-weight: 600; }
+.list .k-warning { color: var(--serious); font-weight: 600; }
+.list .k-watch { color: var(--ink); font-weight: 600; }
+.latch { border-left: 4px solid var(--critical); }
+.sim-panel { border-left: 4px solid var(--sim); }
+.sim-panel label { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 4px; }
+input, select, button { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--axis); border-radius: 6px; padding: 4px 8px; }
+input { width: 72px; }
+button { cursor: pointer; background: var(--surface-2); }
+button:hover { border-color: var(--ink-2); }
+button.danger { border-color: var(--critical); color: var(--critical); }
+.controls { display: grid; gap: 10px; }
+.note { font-size: 12px; color: var(--ink-2); }
+table.truth { border-collapse: collapse; font-size: 12px; width: 100%; }
+table.truth th, table.truth td { padding: 3px 6px; text-align: right; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+table.truth th:first-child, table.truth td:first-child { text-align: left; }
+footer { font-size: 12px; color: var(--muted); text-align: center; padding-bottom: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="card">
+    <div class="row">
+      <h1>Predictive BMS</h1>
+      <span class="badge" id="source">connecting…</span>
+      <span class="badge" id="conn" hidden></span>
+    </div>
+    <div class="row small muted">
+      <span id="clock" class="num"></span>
+      <button id="theme" title="Switch light or dark">Theme</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row spread">
+      <div class="risk-hero">
+        <span class="badge" id="risk">–</span>
+        <div>
+          <div id="risk-why" class="small"></div>
+          <div class="small muted" id="state"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span>Load <span class="relay" id="r-load">–</span></span>
+        <span>Charge <span class="relay" id="r-charge">–</span></span>
+        <span class="badge" id="alarm">alarm off</span>
+      </div>
+    </div>
+    <div class="hero" style="margin-top:12px">
+      <div class="tile"><div class="k">Pack voltage</div><div class="v num" id="p-v">–</div></div>
+      <div class="tile"><div class="k">Current (+ discharge)</div><div class="v num" id="p-i">–</div></div>
+      <div class="tile"><div class="k">Power</div><div class="v num" id="p-p">–</div></div>
+      <div class="tile"><div class="k">Ambient</div><div class="v num" id="p-amb">–</div></div>
+      <div class="tile"><div class="k">Safe continuous current</div><div class="v num" id="p-safe">–</div></div>
+      <div class="tile"><div class="k">Thermal model</div><div class="v" id="p-model" style="font-size:16px">–</div></div>
+    </div>
+    <div class="row small" style="margin-top:10px" id="warnings"></div>
+  </section>
+
+  <section class="card latch" id="latch-card" hidden>
+    <h2>Latched trip</h2>
+    <div id="latch-text"></div>
+    <div class="note" id="latch-how"></div>
+  </section>
+
+  <section class="cells" id="cells"></section>
+
+  <section class="charts">
+    <div class="card chart" id="chart-t">
+      <h2>Cell surface temperature, °C</h2>
+      <svg role="img" aria-label="Cell surface temperatures over time"></svg>
+      <div class="legend"></div>
+      <div class="tip"></div>
+    </div>
+    <div class="card chart" id="chart-q">
+      <h2>Abnormal heat, °C/min (0.5 Warning · 1.0 Trip)</h2>
+      <svg role="img" aria-label="Abnormal heat of each cell over time"></svg>
+      <div class="legend"></div>
+      <div class="tip"></div>
+    </div>
+  </section>
+
+  <section class="card sim-panel" id="sim-card" hidden>
+    <div class="row spread"><h2 style="margin:0">Simulator</h2><span class="note">Commands go to the simulated pack. Nothing here reaches real hardware.</span></div>
+    <div class="controls" style="margin-top:10px">
+      <div class="row">
+        <label>Load A <input id="s-load" type="number" step="0.1" min="0" value="2"></label><button data-cmd="load" data-from="s-load">Set load</button>
+        <label>Charge A <input id="s-charge" type="number" step="0.1" min="0" value="1.5"></label><button data-cmd="charge" data-from="s-charge">Set charge</button>
+        <button data-send="load 0">Load off</button><button data-send="charge 0">Charger off</button>
+        <label>Ambient °C <input id="s-amb" type="number" step="1" value="25"></label><button data-cmd="ambient" data-from="s-amb">Set</button>
+        <label>Speed × <input id="s-speed" type="number" step="1" min="1" value="10"></label><button data-cmd="speed" data-from="s-speed">Set</button>
+      </div>
+      <div class="row">
+        <label>Cell <select id="s-cell"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <label>Heat W <input id="s-heat" type="number" step="0.05" value="0.5"></label><button id="b-heat">Abnormal heat</button>
+        <button id="b-accel">Self-accelerating heat</button>
+        <label>Ω <input id="s-ohm" type="number" step="1" value="47"></label><button id="b-short">Resistor across taps (Gate 11)</button><button id="b-leak">Internal leak</button>
+        <button id="b-lift">Lift NTC</button>
+      </div>
+      <div class="row">
+        <label>NTC <select id="s-ntc"><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5 (air)</option></select></label>
+        <select id="s-ntcmode"><option>open</option><option>short</option><option>stuck</option><option>ok</option></select><button id="b-ntc">Apply</button>
+        <button data-send="ads fail">ADS1115 fails</button><button data-send="ads ok">ADS1115 ok</button>
+        <button data-send="ina fail">INA226 fails</button><button data-send="ina ok">INA226 ok</button>
+        <button data-send="clear">Clear all faults</button>
+      </div>
+      <div class="row">
+        <button data-send="reset">Manual reset</button>
+        <button class="danger" data-send="restart crash">Crash and restart</button>
+        <button data-send="model off">Model off</button><button data-send="model fitted">Model fitted</button>
+        <span class="note" id="sim-reply"></span>
+      </div>
+    </div>
+    <h2 style="margin-top:14px">What the simulator knows and the supervisor estimates</h2>
+    <table class="truth" id="truth"></table>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <h2>Events</h2>
+      <ul class="list" id="events"></ul>
+    </div>
+    <div class="card">
+      <h2>Sensors and rest leak window</h2>
+      <div class="row" id="sensors"></div>
+      <div class="note" id="leakinfo" style="margin-top:8px"></div>
+      <h2 style="margin-top:14px">Trip records</h2>
+      <ul class="list" id="trips"></ul>
+    </div>
+  </section>
+
+  <footer>Wi-Fi only carries this page: every protection runs on the ESP32 with Wi-Fi off. Values follow architecture revision 2.2.</footer>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const COLORS = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
+const LEVELS = ["Normal", "Watch", "Warning", "Trip"];
+const ICONS = [
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3 3 7-7"/></svg>',
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 1.8l6.5 12H1.5z"/><path d="M8 6.5v3.2M8 11.6v.4"/></svg>',
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5.2 1.5h5.6l3.7 3.7v5.6l-3.7 3.7H5.2l-3.7-3.7V5.2z"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>'];
+const REASONS = {
+  confirm_hot: "5-min forecast too low", heat_diff: "hotter than the other cells",
+  time_to_limit: "limit within 10 min", above_safe_current: "above safe current",
+  leak: "self-discharge at rest", resistance_drift: "resistance drift",
+  heat: "abnormal heat", thermal_and_electrical: "thermal + electrical agree",
+  heat_trip: "abnormal heat trip", heat_diff_trip: "cell difference trip",
+  self_acceleration: "self-accelerating heat" };
+const WARN = { cell_high: "cell above 4.10 V", cell_low: "cell below 3.20 V",
+  charge_temp: "charging above 40 °C", discharge_temp: "above 50 °C", temp_spread: "spread 7 °C",
+  rise_rate: "rising fast", discharge_current: "current above 4.5 A", sensor: "sensor notice" };
+const HIST = 600;                       // points kept per chart
+const hist = { t: [], ts: [[], [], [], []], amb: [], q: [[], [], [], []] };
+let last = null, lastOk = 0, isSim = false;
+
+const fmt = (v, d = 2, unit = "") => (v === null || v === undefined || Number.isNaN(v)) ? "–" : v.toFixed(d) + unit;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const dur = (s) => s === null ? "never at this load" : s < 90 ? s.toFixed(0) + " s" : (s / 60).toFixed(1) + " min";
+
+function riskBadge(el, level, big) {
+  el.className = "badge st-" + level;
+  el.innerHTML = ICONS[level] + LEVELS[level];
+}
+
+function cellCard(i) {
+  const d = document.createElement("article");
+  d.className = "card cell";
+  d.innerHTML = `<div class="row spread"><h3><span class="swatch" style="background:${COLORS[i]}"></span>Cell ${i + 1}</h3><span class="badge" data-k="lvl"></span></div>
+    <dl class="kv">
+      <dt>Voltage</dt><dd data-k="v"></dd>
+      <dt>Resistance (online, model)</dt><dd data-k="r"></dd>
+      <dt>Surface, measured</dt><dd data-k="ts"></dd>
+      <dt>Core, estimated</dt><dd data-k="tc"></dd>
+      <dt>Rate of rise</dt><dd data-k="rise"></dd>
+      <div class="sep"></div>
+      <dt>Abnormal heat</dt><dd data-k="q"></dd>
+      <dt>Against the other cells</dt><dd data-k="qd"></dd>
+      <dt>Forecast 1 min · 5 min</dt><dd data-k="f"></dd>
+      <dt>Last check 1 min · 5 min</dt><dd data-k="e"></dd>
+      <dt>5-min forecast error (hour · all)</dt><dd data-k="rms"></dd>
+      <dt>Settles at · time to limit</dt><dd data-k="ttl"></dd>
+      <dt>Safe current</dt><dd data-k="isafe"></dd>
+      <div class="sep"></div>
+      <dt>Leak at rest · cross-check</dt><dd data-k="leak"></dd>
+    </dl>
+    <div class="chips" data-k="why"></div>`;
+  return d;
+}
+
+const cellsEl = $("cells");
+const cards = [0, 1, 2, 3].map((i) => { const c = cellCard(i); cellsEl.appendChild(c); return c; });
+const put = (card, k, html) => { card.querySelector(`[data-k="${k}"]`).innerHTML = html; };
+
+function render(s) {
+  isSim = !!s.sim;
+  const src = $("source");
+  if (s.sim) { src.className = "badge sim"; src.textContent = `SIMULATED PACK · ×${s.sim.speed}`; }
+  else if (s.bench_sim) { src.className = "badge sim"; src.textContent = "ESP32 · BENCH MODE: SIMULATED SENSORS"; }
+  else { src.className = "badge"; src.textContent = "ESP32"; }
+  $("clock").textContent = `t = ${(s.t / 60).toFixed(1)} min`;
+
+  riskBadge($("risk"), s.risk);
+  const why = new Set();
+  s.cells.forEach((c, i) => c.reasons.forEach((r) => why.add(`Cell ${i + 1}: ${REASONS[r] || r}`)));
+  $("risk-why").textContent = why.size ? [...why].join(" · ") : "Every cell is behaving as its model predicts.";
+  $("state").textContent = `State ${s.state} · ${s.mode}`;
+  const relay = (el, on, latched) => { el.className = "relay " + (on ? "on" : "off"); el.textContent = on ? "ON" : latched ? "OPEN (latched)" : "OPEN"; };
+  relay($("r-load"), s.relays.load, s.latch.load);
+  relay($("r-charge"), s.relays.charge, s.latch.charge);
+  const al = $("alarm");
+  al.className = "badge" + (s.alarm === "trip" ? " st-3" : s.alarm === "warning" ? " st-2" : "");
+  al.textContent = "alarm " + s.alarm;
+
+  $("p-v").innerHTML = fmt(s.pack.v, 3) + "<small> V</small>";
+  $("p-i").innerHTML = fmt(s.pack.i, 3) + "<small> A</small>";
+  $("p-p").innerHTML = fmt(s.pack.p, 1) + "<small> W</small>";
+  $("p-amb").innerHTML = fmt(s.pack.t_amb, 1) + "<small> °C</small>";
+  $("p-safe").innerHTML = fmt(s.pack.i_safe, 2) + `<small> A at ${s.pack.t_trip} °C</small>`;
+  $("p-model").textContent = s.model === "off" ? "off (unfitted limits)" : s.model + (s.thermal_ready ? "" : " · settling");
+  $("warnings").innerHTML = s.warnings.length
+    ? s.warnings.map((w) => `<span class="badge st-1">${ICONS[2]}${esc(WARN[w] || w)}</span>`).join("")
+    : '<span class="muted">No limit warnings.</span>';
+
+  const lc = $("latch-card");
+  lc.hidden = !(s.latch.load || s.latch.charge);
+  if (!lc.hidden) {
+    const open = [s.latch.load && "load", s.latch.charge && "charge"].filter(Boolean).join(" and ");
+    $("latch-text").innerHTML = `<b>${esc(s.latch.first)}</b> first; ${esc(s.latch.trips.join(", "))}. The ${open} branch${open.includes("and") ? "es are" : " is"} held open.`;
+    $("latch-how").textContent = isSim ? "Use Manual reset in the simulator panel. It is accepted only when every cell is 3.20–4.10 V, every NTC is below 40 °C, all sensors are plausible and the cause has been clear for 60 s."
+      : "Reset at the device: hold BOOT for 3 s, or type reset on the serial console. The reset is accepted only when every cell is 3.20–4.10 V, every NTC is below 40 °C, all sensors are plausible and the cause has been clear for 60 s.";
+  }
+
+  s.cells.forEach((c, i) => {
+    const k = cards[i];
+    riskBadge(k.querySelector('[data-k="lvl"]'), c.level);
+    put(k, "v", fmt(c.v, 4, " V"));
+    put(k, "r", `${fmt(c.r_avg_mohm, 1)} · ${fmt(c.r_mohm, 1)} mΩ <span class="muted">(${c.r_steps} steps)</span>`);
+    put(k, "ts", fmt(c.t_s, 2, " °C"));
+    put(k, "tc", fmt(c.t_c, 2, " °C"));
+    put(k, "rise", fmt(c.rise, 2, " °C/min"));
+    put(k, "q", c.q_w === null ? "–" : `${fmt(c.q_w, 3)} W · ${fmt(c.q_rate, 2)} °C/min`);
+    put(k, "qd", fmt(c.q_diff, 2, " °C/min"));
+    put(k, "f", `${fmt(c.f1, 2)} · ${fmt(c.f5, 2)} °C`);
+    const v = c.verdict;
+    const vcls = v === "normal" ? "verdict-normal" : (v === "hot" || v === "cold") ? "verdict-" + v : "";
+    const vtxt = { normal: "✓ confirmed", hot: "hotter than predicted", cold: "colder than predicted", unconfirmed: "outside ±0.5", pending: "waiting" }[v];
+    put(k, "e", `${fmt(c.e1, 2)} · ${fmt(c.e5, 2)} °C <span class="${vcls}">${vtxt}</span>`);
+    put(k, "rms", `${fmt(c.rms5_hour, 2)} · ${fmt(c.rms5_all, 2)} °C <span class="muted">(${c.n5_all})</span>`);
+    put(k, "ttl", c.t_eq === null ? "–" : `${fmt(c.t_eq, 1)} °C · ${dur(c.ttl_s)}`);
+    put(k, "isafe", fmt(c.i_safe, 2, " A"));
+    const cross = { agree: '<span class="verdict-normal">agree</span>', disagree: "disagree", "n/a": "" }[c.cross];
+    // A negative value only means another cell is leaking: this one keeps its charge better.
+    put(k, "leak", c.leak_ma === null ? `<span class="muted">${s.ocv_table ? "waiting for rest" : "no Gate 10 table"}</span>`
+      : c.leak_ma < 0 ? `none <span class="muted">(${fmt(c.leak_ma, 1)} mA)</span>` : `${fmt(c.leak_ma, 1)} mA ${cross ? "· " + cross : ""}`);
+    put(k, "why", c.reasons.map((r) => `<span class="chip">${esc(REASONS[r] || r)}</span>`).join(""));
+  });
+
+  $("events").innerHTML = s.events.map((e) => `<li><span class="num muted">${(e.t / 60).toFixed(1)} min</span><span class="k-${e.kind}">${esc(e.kind)}</span><span>${esc(e.text)}</span></li>`).join("") || '<li><span></span><span></span><span class="muted">No events yet.</span></li>';
+  $("trips").innerHTML = s.trip_log.map((t) => `<li><span class="num muted">${(t.t / 60).toFixed(1)} min</span><span class="k-trip">${esc(t.code)}</span><span>${esc(t.detail)} · I ${fmt(t.i, 2)} A · V ${t.v.map((x) => fmt(x, 3)).join(" ")} · T ${t.t_c.map((x) => fmt(x, 1)).join(" ")} °C · load was ${t.load_was_on ? "on" : "off"}, charge ${t.charge_was_on ? "on" : "off"}</span></li>`).join("") || '<li><span></span><span></span><span class="muted">No trips recorded.</span></li>';
+  const sens = [["Taps", s.sensors.taps], ["Current", s.sensors.current]].concat(s.sensors.ntc.map((v, i) => [i === 4 ? "NTC5 air" : "NTC" + (i + 1), v]));
+  $("sensors").innerHTML = sens.map(([n, v]) => `<span class="badge ${v === "ok" ? "" : v === "notice" ? "st-1" : "st-3"}">${v === "ok" ? ICONS[0] : ICONS[2]}${n} ${v}</span>`).join("");
+  $("leakinfo").textContent = !s.ocv_table ? "The rest leak estimate starts once the Gate 10 OCV table is loaded."
+    : s.leak.valid ? `Leak estimate running: ${s.leak.rest_min} min at rest, 60-minute window full.`
+    : `At rest for ${s.leak.rest_min} min; the estimate needs 30 min to settle and a 60-minute window (${s.leak.window_min}/60).`;
+
+  if (s.sim) renderTruth(s);
+  $("sim-card").hidden = !s.sim;
+}
+
+function renderTruth(s) {
+  const rows = s.cells.map((c, i) => {
+    const t = s.sim.cells[i];
+    const faults = [t.short_ohm ? `${t.short_ohm} Ω across taps` : "", t.leak_ohm ? `${t.leak_ohm} Ω inside` : "", t.ntc !== "normal" ? "NTC " + t.ntc : ""].filter(Boolean).join(", ");
+    return `<tr><td><span class="swatch" style="background:${COLORS[i]}"></span> Cell ${i + 1}</td><td>${fmt(t.t_core, 2)}</td><td>${fmt(c.t_c, 2)}</td><td>${fmt(t.q_w, 3)}</td><td>${fmt(c.q_w, 3)}</td><td>${(t.soc * 100).toFixed(1)} %</td><td style="text-align:left">${esc(faults || "none")}</td></tr>`;
+  }).join("");
+  $("truth").innerHTML = `<tr><th>Cell</th><th>Core °C true</th><th>Core °C estimated</th><th>Extra heat W true</th><th>Abnormal heat W estimated</th><th>Charge</th><th style="text-align:left">Faults</th></tr>${rows}`;
+}
+
+// ---- charts: thin lines, one axis, hover crosshair with a tooltip ----
+function drawChart(id, series, opts) {
+  const root = $(id), svg = root.querySelector("svg"), tip = root.querySelector(".tip");
+  const W = svg.clientWidth || 600, H = svg.clientHeight || 240;
+  const m = { l: 44, r: 34, t: 8, b: 22 };
+  const t = hist.t;
+  if (t.length < 2) { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted)" font-size="12">Collecting data…</text>`; return; }
+  let lo = Infinity, hi = -Infinity;
+  series.forEach((s) => s.data.forEach((v) => { if (v !== null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
+  (opts.refs || []).forEach((r) => { if (r.v <= hi + opts.pad * 3) hi = Math.max(hi, r.v); });
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (opts.zero) { lo = Math.min(lo, 0); }
+  if (hi - lo < opts.minSpan) { const c = (hi + lo) / 2; lo = c - opts.minSpan / 2; hi = c + opts.minSpan / 2; }
+  lo -= opts.pad; hi += opts.pad;
+  const x0 = t[0], x1 = t[t.length - 1];
+  const X = (v) => m.l + (v - x0) / Math.max(1e-9, x1 - x0) * (W - m.l - m.r);
+  const Y = (v) => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const step = niceStep((hi - lo) / 4);
+  let g = "";
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" class="num">${+v.toFixed(2)}</text>`;
+  }
+  const span = x1 - x0, tstep = niceStep(span / 5 / 60) * 60;
+  for (let v = Math.ceil(x0 / tstep) * tstep; v <= x1; v += tstep)
+    g += `<text x="${X(v)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--muted)" class="num">${(v / 60).toFixed(tstep < 60 ? 1 : 0)} min</text>`;
+  (opts.refs || []).forEach((r) => {
+    if (r.v < lo || r.v > hi) return;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(r.v)}" y2="${Y(r.v)}" stroke="var(--ink-2)" stroke-opacity="0.55" stroke-dasharray="4 4"/>`;
+    g += `<text x="${m.l + 4}" y="${Y(r.v) - 4}" font-size="11" fill="var(--ink-2)">${r.label}</text>`;
+  });
+  let lines = "";
+  const ends = [];
+  series.forEach((s) => {
+    let d = "", pen = false;
+    s.data.forEach((v, k) => { if (v === null) { pen = false; return; } d += (pen ? "L" : "M") + X(t[k]).toFixed(1) + " " + Y(v).toFixed(1); pen = true; });
+    lines += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
+    const lastV = s.data[s.data.length - 1];
+    if (lastV !== null) ends.push({ y: Y(lastV), text: s.short });
+  });
+  ends.sort((a, b) => a.y - b.y);
+  for (let k = 1; k < ends.length; ++k) ends[k].y = Math.max(ends[k].y, ends[k - 1].y + 12);
+  const over = ends.length ? ends[ends.length - 1].y - (H - m.b) : 0;
+  if (over > 0) ends.forEach((e) => e.y -= over);
+  const labels = ends.map((e) => `<text x="${W - m.r + 4}" y="${e.y + 4}" font-size="11" fill="var(--ink-2)">${e.text}</text>`).join("");
+  svg.innerHTML = g + `<line x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}" stroke="var(--axis)"/>` + lines + labels + '<line class="xh" y1="' + m.t + '" y2="' + (H - m.b) + '" stroke="var(--ink-2)" stroke-width="1" visibility="hidden"/>';
+  root.querySelector(".legend").innerHTML = series.map((s) => `<span><span class="swatch" style="background:${s.color};${s.dash ? "opacity:.7" : ""}"></span>${s.name}</span>`).join("");
+  svg.onmousemove = (ev) => {
+    const r = svg.getBoundingClientRect(), px = ev.clientX - r.left;
+    let k = Math.round((px - m.l) / (W - m.l - m.r) * (t.length - 1));
+    k = Math.max(0, Math.min(t.length - 1, k));
+    const xh = svg.querySelector(".xh");
+    xh.setAttribute("x1", X(t[k])); xh.setAttribute("x2", X(t[k])); xh.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b>${(t[k] / 60).toFixed(2)} min</b><br>` + series.map((s) => `<span class="swatch" style="background:${s.color}"></span> ${s.name}: <b class="num">${fmt(s.data[k], opts.dp)}</b>`).join("<br>");
+    tip.style.display = "block";
+    const left = Math.min(px + 14, r.width - tip.offsetWidth - 4);
+    tip.style.left = left + "px"; tip.style.top = "40px";
+  };
+  svg.onmouseleave = () => { tip.style.display = "none"; const xh = svg.querySelector(".xh"); if (xh) xh.setAttribute("visibility", "hidden"); };
+}
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1e-9)))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+
+function record(s) {
+  if (hist.t.length && s.t <= hist.t[hist.t.length - 1]) {
+    if (s.t < hist.t[hist.t.length - 1] - 5) { hist.t.length = 0; hist.amb.length = 0; hist.ts.forEach((a) => a.length = 0); hist.q.forEach((a) => a.length = 0); }
+    else return;
+  }
+  hist.t.push(s.t); hist.amb.push(s.pack.t_amb);
+  s.cells.forEach((c, i) => { hist.ts[i].push(c.t_s); hist.q[i].push(c.q_rate); });
+  if (hist.t.length > HIST) { hist.t.shift(); hist.amb.shift(); hist.ts.forEach((a) => a.shift()); hist.q.forEach((a) => a.shift()); }
+}
+function charts() {
+  const cellSeries = (arr) => arr.map((d, i) => ({ name: `Cell ${i + 1}`, short: `C${i + 1}`, color: COLORS[i], data: d }));
+  drawChart("chart-t", cellSeries(hist.ts).concat([{ name: "Ambient", short: "Air", color: "var(--amb)", dash: true, data: hist.amb }]), { pad: 0.2, minSpan: 2, dp: 2 });
+  drawChart("chart-q", cellSeries(hist.q), { pad: 0.05, minSpan: 0.4, dp: 2, zero: true, refs: [{ v: 0.5, label: "Warning 0.5" }, { v: 1.0, label: "Trip 1.0" }] });
+}
+
+async function poll() {
+  try {
+    const r = await fetch("api/state", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const s = await r.json();
+    last = s; lastOk = Date.now();
+    record(s); render(s); charts();
+  } catch (e) { /* shown by the connection badge */ }
+  const age = (Date.now() - lastOk) / 1000;
+  const c = $("conn");
+  c.hidden = lastOk && age < 3;
+  c.className = "badge lost";
+  c.textContent = lastOk ? `no update for ${age.toFixed(0)} s` : "no connection";
+}
+setInterval(poll, 1000);
+poll();
+window.addEventListener("resize", charts);
+
+// ---- simulator controls (only when the page is served by tools/sim_server.py) ----
+async function send(line) {
+  try {
+    const r = await fetch("sim", { method: "POST", body: line });
+    $("sim-reply").textContent = (await r.text()) || line;
+  } catch (e) { $("sim-reply").textContent = "not sent: " + e; }
+}
+document.querySelectorAll("[data-send]").forEach((b) => b.onclick = () => send(b.dataset.send));
+document.querySelectorAll("[data-cmd]").forEach((b) => b.onclick = () => send(`${b.dataset.cmd} ${$(b.dataset.from).value}`));
+const cell = () => $("s-cell").value;
+$("b-heat").onclick = () => send(`heat ${cell()} ${$("s-heat").value}`);
+$("b-accel").onclick = () => send(`accel ${cell()} ${$("s-heat").value} 3`);
+$("b-short").onclick = () => send(`short ${cell()} ${$("s-ohm").value}`);
+$("b-leak").onclick = () => send(`leak ${cell()} ${$("s-ohm").value}`);
+$("b-lift").onclick = () => send(`lift ${cell()}`);
+$("b-ntc").onclick = () => send(`ntc ${$("s-ntc").value} ${$("s-ntcmode").value}`);
+
+// ---- theme toggle: follows the system until chosen ----
+$("theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+  try { localStorage.setItem("bms-theme", document.documentElement.dataset.theme); } catch (e) {}
+  charts();
+};
+try { const t = localStorage.getItem("bms-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+const asked = new URLSearchParams(location.search).get("theme");
+if (asked === "light" || asked === "dark") document.documentElement.dataset.theme = asked;
+</script>
+</body>
+</html>

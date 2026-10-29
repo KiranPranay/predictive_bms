@@ -1,0 +1,24 @@
+# Project-local toolchains: ESP-IDF in .tools/, Python packages in .venv/
+.tools/
+.venv/
+
+# Builds
+build/
+firmware/build/
+firmware/build-*/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+
+# Python
+__pycache__/
+*.pyc
+
+# Bench logs and captures stay with the gate records, not in git
+logs/
+
+# Editors and systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+Item,Subsystem,Part,Source,Quantity,Cost basis,Amount (INR),Price confidence,Procurement state,Notes
+1,Control,ESP32-WROOM-32D DevKit,Robu,1,1 x 639,639,Cart verified,Keep in cart,Includes GST
+2,Pack,Panasonic/Sanyo NCR18650GA cells,Existing stock (replacement: Batteryworks India),4,4 x 899 replacement value,3596,Live replacement listing,Owned stock - no purchase required,Full replacement cost retained for reproducibility; qualify the four previously used cells as a matched set
+3,Protection,SLCT 4S 20A hardware BMS with balance,Robu,1,1 x 239,239,Cart verified,In cart,Common-port hardware protection with 5-pin JST-XH harness
+4,Pack mechanics,18650 2x1 modular spacers,Robu,4,4 x 4,16,Cart verified,In cart,Two interlocked spacers per end support the four-cell row
+5,Pack insulation,Positive terminal insulation sheets,Robu,2,2 x 6,12,Cart verified,In cart,Two sheets satisfy minimum line value; four rings used
+6,Pack insulation,Fish paper and pack sleeve,Robu or local,1 set,Budget allowance,150,Budget allowance,Verify before order,Measure welded pack before selecting sleeve
+7,Pack interconnect,Pure nickel strip pack,Existing stock (replacement: Robu),1 pack,1 x 569 replacement value,569,Cart-verified replacement price,Owned stock - no purchase required,50 pieces 0.15x8x100mm; replacement cost retained for reproducibility
+8,Thermal sensing,10k B3950 epoxy bead NTCs,Robu,5,5 x 14,70,Cart verified,Add one to cart,Listing contains one thermistor per ordered unit; four cell sensors plus one ambient sensor (architecture revision 2.2)
+9,Voltage sensing,ADS1115 ADC module,Robu,1,1 x 119,119,Cart verified,In cart,Four cumulative tap channels
+10,Sensing,1% metal-film resistor kit,Robu,1,1 x 389,389,Cart verified,Keep in cart,Confirm 56k and 330k values are included
+11,Sensing,RC filters and ADC clamps,Robu or local,1 set,Budget allowance,100,Budget allowance,Verify before order,Final clamp choice follows leakage test
+12,Current sensing,INA226 module,Robu,1,1 x 124,124,Cart verified,In cart,Bypass or remove onboard R100 shunt and calibrate external shunt
+13,Current sensing,5mOhm 3W shunt pack,Robu,1 pack,1 x 15,15,Cart verified,In cart,Pack of three; use one with Kelvin sense wiring
+14,Power,LM2596 buck regulator,Robu,1,1 x 45,45,Cart verified,Keep in cart,Set to 5.0V before load
+15,Isolation,SmartElex dual relay board,Robu,1,1 x 209,209,Cart verified,In cart,Two independent normally-open branches
+16,Protection,7.5A medium blade fuses,Robu,2,2 x 11,22,Cart verified,In cart,One fitted and one spare; 15A fuses removed
+17,Protection,Waterproof inline holder pack,Robu,1 pack,1 x 589,589,Cart verified,Keep only if fuse format matches,Five holders in pack
+18,Connectivity,XT60 and JST-XH set,Robu,1 set,Existing cart allocation,140,Cart verified,Keep in cart,Two XT60 pairs and one 5-pin balance harness
+19,Wiring,16AWG and 22AWG silicone wire,Robu,7m,Existing cart allocation,198,Cart verified,Keep in cart,Two power colours and five sense colours
+20,Assembly,7x9cm perfboards,Existing stock (replacement: DNA Technology),2,2 x 39.095 replacement value,78.19,Live replacement listing,Owned stock - no purchase required,Prototype electronics only; replacement cost retained for reproducibility
+21,Charging,16.8V 1.5A isolated CC/CV charger,Existing stock (replacement: Lion Battery India),1,Estimated GST-inclusive replacement budget,850,Live listing plus tax estimate,Owned stock - no purchase required,Listing is ₹720.34 before tax; verify the owned charger's CC/CV behaviour connector polarity isolation and 16.80V output before use
+22,Charging,Provisional 5.5x2.5mm screw-terminal connector pair,Efillooc,1 pair,1 x 169,169,Live listing verified,Hold - verify charger plug,Purchase only if the selected charger's measured plug is 5.5x2.5mm and polarity matches
+23,Enclosure,Numakers PETG-HS 1kg,Existing stock (replacement: Robu),1 spool,1 x 780 replacement value,780,Cart-verified replacement price,Owned stock - no purchase required,Light grey 1.75mm; PLA removed; replacement cost retained for reproducibility
+24,Assembly,Mounting and strain-relief hardware,Robu or local,1 set,Budget allowance,100,Budget allowance,Verify before order,Standoffs glands ferrules and ties
+25,User safety,SmartElex active buzzer and red LED,Robu,1 set,1 x 42,42,Cart verified,In cart,Use module with an existing red LED and resistor for latched fault indication

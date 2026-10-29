@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">Predictive 4S BMS current architecture</title>
+  <desc id="desc">A two-layer battery safety architecture with a welded 4S1P pack, hardware BMS and fuse, monitored current path, independent normally-open charge and load relays, and ESP32 sensing.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f8f4}.panel{fill:#fff;stroke:#263238;stroke-width:2}.soft{fill:#edf4ef;stroke:#47705a;stroke-width:2}.warn{fill:#fff2d7;stroke:#b46b00;stroke-width:2}.danger{fill:#fde8e6;stroke:#ad3f37;stroke-width:2}.blue{fill:#e8f0fb;stroke:#315f91;stroke-width:2}.purple{fill:#f1eafb;stroke:#6e4e91;stroke-width:2}.title{font-family:Arial,sans-serif;font-size:34px;font-weight:700;fill:#17221c}.h{font-family:Arial,sans-serif;font-size:21px;font-weight:700;fill:#17221c}.t{font-family:Arial,sans-serif;font-size:16px;fill:#263238}.s{font-family:Arial,sans-serif;font-size:14px;fill:#445049}.mono{font-family:'Courier New',monospace;font-size:15px;fill:#263238}.power{fill:none;stroke:#ad3f37;stroke-width:5;marker-end:url(#arrowRed)}.return{fill:none;stroke:#263238;stroke-width:5;marker-end:url(#arrow)}.signal{fill:none;stroke:#315f91;stroke-width:3;stroke-dasharray:10 7;marker-end:url(#arrowBlue)}.tap{fill:none;stroke:#6e4e91;stroke-width:3;marker-end:url(#arrowPurple)}.rail{fill:none;stroke:#ad3f37;stroke-width:5}.ground{fill:none;stroke:#263238;stroke-width:5}.label{font-family:Arial,sans-serif;font-size:14px;font-weight:700;fill:#ad3f37}.siglabel{font-family:Arial,sans-serif;font-size:14px;font-weight:700;fill:#315f91}
+    </style>
+    <marker id="arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#263238"/></marker>
+    <marker id="arrowRed" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ad3f37"/></marker>
+    <marker id="arrowBlue" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#315f91"/></marker>
+    <marker id="arrowPurple" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6e4e91"/></marker>
+  </defs>
+  <rect class="bg" width="1600" height="1050"/>
+  <text class="title" x="70" y="58">Predictive 4S BMS — current build architecture</text>
+  <text class="t" x="70" y="88">4S1P NCR18650GA • 16.8V max • 3.3Ah / ≈47.5Wh • 5A prototype • 1.5A charge • hardware protection independent of firmware</text>
+
+  <rect class="soft" x="55" y="125" width="300" height="330" rx="18"/>
+  <text class="h" x="85" y="164">Welded 4S1P cell pack</text>
+  <rect class="panel" x="95" y="194" width="220" height="48" rx="10"/><text class="t" x="118" y="225">C4 • 3.0–4.2V • NTC4</text>
+  <rect class="panel" x="95" y="252" width="220" height="48" rx="10"/><text class="t" x="118" y="283">C3 • 3.0–4.2V • NTC3</text>
+  <rect class="panel" x="95" y="310" width="220" height="48" rx="10"/><text class="t" x="118" y="341">C2 • 3.0–4.2V • NTC2</text>
+  <rect class="panel" x="95" y="368" width="220" height="48" rx="10"/><text class="t" x="118" y="399">C1 • 3.0–4.2V • NTC1</text>
+  <text class="s" x="85" y="440">Spacers + fish paper + nickel + sleeve</text>
+
+  <rect class="warn" x="430" y="150" width="300" height="250" rx="18"/>
+  <text class="h" x="460" y="188">Layer A: hardware safety</text>
+  <text class="t" x="460" y="226">4S NMC BMS • common port</text>
+  <text class="t" x="460" y="258">OV / UV / OCD / SCD</text>
+  <text class="t" x="460" y="290">Passive balance ≈ 30mA</text>
+  <text class="mono" x="460" y="326">B- B1 B2 B3 B+ → P- P+</text>
+  <text class="s" x="460" y="366">Works even if ESP32 or Wi-Fi fails</text>
+
+  <path class="tap" d="M355 225 C390 225 394 220 430 220"/><path class="tap" d="M355 280 C390 280 394 260 430 260"/>
+  <path class="tap" d="M355 335 C390 335 394 300 430 300"/><path class="tap" d="M355 390 C390 390 394 340 430 340"/>
+  <text class="s" x="365" y="205">B-/B1/B2/B3/B+</text>
+
+  <rect class="danger" x="805" y="132" width="155" height="74" rx="14"/>
+  <text class="h" x="846" y="163">7.5A fuse</text><text class="s" x="832" y="188">at pack positive exit</text>
+  <rect class="purple" x="1010" y="132" width="185" height="74" rx="14"/>
+  <text class="h" x="1060" y="163">5mΩ shunt</text><text class="s" x="1033" y="188">INA226 Kelvin sense</text>
+  <path class="power" d="M730 180 H805"/><path class="power" d="M960 169 H1010"/><path class="power" d="M1195 169 H1515"/>
+  <text class="label" x="745" y="163">P+</text><text class="label" x="1230" y="152">FUSED+</text>
+
+  <rect class="panel" x="1280" y="240" width="250" height="90" rx="16"/>
+  <text class="h" x="1346" y="274">LOAD branch</text><text class="t" x="1310" y="306">+ direct • − via K_LOAD NO</text>
+  <rect class="panel" x="1280" y="390" width="250" height="90" rx="16"/>
+  <text class="h" x="1332" y="424">CHARGE branch</text><text class="t" x="1303" y="456">+ direct • − via K_CHARGE NO</text>
+  <path class="rail" d="M1405 169 V240"/><path class="rail" d="M1470 169 V390"/>
+
+  <rect class="blue" x="805" y="260" width="350" height="430" rx="20"/>
+  <text class="h" x="835" y="300">Layer B: predictive supervisor</text>
+  <rect class="panel" x="845" y="326" width="270" height="74" rx="12"/>
+  <text class="h" x="925" y="358">ESP32</text><text class="s" x="875" y="383">State machine • logging • Wi-Fi</text>
+  <rect class="panel" x="845" y="430" width="125" height="96" rx="12"/>
+  <text class="h" x="866" y="463">ADS1115</text><text class="s" x="865" y="489">4 tap dividers</text><text class="s" x="865" y="510">16-bit I²C</text>
+  <rect class="panel" x="990" y="430" width="125" height="96" rx="12"/>
+  <text class="h" x="1011" y="463">INA226</text><text class="s" x="1008" y="489">I / V / power</text><text class="s" x="1008" y="510">36V I²C</text>
+  <rect class="panel" x="845" y="556" width="270" height="98" rx="12"/>
+  <text class="h" x="900" y="589">4 × fast 10k NTC</text><text class="s" x="874" y="615">ADC1 only: GPIO32/33/34/35</text><text class="s" x="875" y="637">Filtered 30s dT/dt estimate</text>
+  <path class="signal" d="M980 400 V430"/><path class="signal" d="M980 400 C1080 410 1050 420 1050 430"/>
+
+  <rect class="warn" x="1215" y="560" width="315" height="150" rx="18"/>
+  <text class="h" x="1248" y="596">2-channel 5V relay module</text>
+  <text class="t" x="1248" y="628">K_LOAD and K_CHARGE</text>
+  <text class="t" x="1248" y="656">Normally open • active LOW</text>
+  <text class="s" x="1248" y="683">Pull-ups force both OFF on reset</text>
+  <path class="signal" d="M1115 365 C1210 365 1180 598 1215 598"/>
+  <path class="return" d="M1280 285 C1170 285 1180 605 1215 605"/>
+  <path class="return" d="M1280 435 C1170 435 1180 660 1215 660"/>
+
+  <rect class="soft" x="430" y="500" width="300" height="155" rx="18"/>
+  <text class="h" x="475" y="537">LM2596 low-voltage supply</text>
+  <text class="t" x="470" y="572">Protected P+/P- → regulated 5.0V</text>
+  <text class="t" x="470" y="604">ESP32 VIN + relay coils</text>
+  <text class="s" x="470" y="631">Before branch relays; after hardware BMS</text>
+  <path class="power" d="M730 380 C770 380 760 525 805 525"/>
+  <path class="signal" d="M730 575 H805"/>
+
+  <rect class="panel" x="55" y="760" width="1475" height="220" rx="20"/>
+  <text class="h" x="85" y="800">Control policy</text>
+  <text class="t" x="85" y="838">WARN: cell ≥ 4.10V or ≤ 3.20V • T ≥ 40°C charge / 50°C discharge • dT/dt ≥ 0.5°C/min for 30s</text>
+  <text class="t" x="85" y="874">TRIP: charge at 4.15V or 45°C • load at 3.10V or 55°C • both at ΔT ≥ 10°C or dT/dt ≥ 1.0°C/min for 10s</text>
+  <text class="t" x="85" y="910">Every trip latches. Manual reset only after 60s healthy: cells 3.20–4.10V, all NTCs &lt; 40°C, valid ADC/current data.</text>
+  <text class="t" x="85" y="946">Never test by overheating a live cell. Validate with synthetic traces and an external heater on an aluminium dummy thermal mass.</text>
+
+  <text class="s" x="70" y="1020">Build authority: docs/current-architecture.md • Safe sequence: docs/safe-build-sequence.md • First-review deck remains historical.</text>
+</svg>
