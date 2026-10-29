@@ -111,11 +111,11 @@ build/host/bms_sim run all --thermal <the seven values it prints>
 ```
 
 **The Gate 11 resistor heats the can, not the core.** The observer's model puts abnormal heat in
-the core. Heat at the surface makes the reading rise faster than any core heat could, and with
-the first Kalman tuning the estimate jumped to 0.52 W for about 20 s, more than twice the true
-0.24 W. That is enough to trip the pack on the cell-to-cell rule the moment the resistor is
-fitted. The tuning now in the firmware lets the surface state absorb fast changes: the overshoot
-is 11 % (0.26 W). At Gate 11, mount the resistor on the opposite side of the cell from its NTC,
+the core. Heat at the surface makes the reading rise faster than any core heat could. With a
+tuning that trusts the surface model closely, the estimate jumps to 0.52 W for about 20 s, more
+than twice the true 0.24 W: enough to trip the pack on the cell-to-cell rule the moment the
+resistor is fitted. The firmware's tuning lets the surface state absorb fast changes, which
+holds the overshoot to 11 % (0.26 W). At Gate 11, mount the resistor on the opposite side of the cell from its NTC,
 watch the abnormal heat for the first minute, and re-check the tuning with the real NTC noise.
 
 **The soft short needs 90 minutes.** The leak estimate waits 30 minutes after the last load or

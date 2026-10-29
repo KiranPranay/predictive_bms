@@ -17,6 +17,9 @@ __pycache__/
 # Bench logs and captures stay with the gate records, not in git
 logs/
 
+# Notes for the developer
+notes/
+
 # Editors and systems
 .vscode/
 .idea/

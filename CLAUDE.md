@@ -36,9 +36,12 @@ designed: the prototype is modules on perfboard.
   or names, and copyrighted papers (such as the base paper's PDF).
 - **This computer:** no sudo, apt or system-wide installs. ESP-IDF lives in `.tools/` and Python
   packages in `.venv/`, both git-ignored. Anything else: write the command and the reason, and ask.
-- **Writing:** plain English, short sentences, no unexplained jargon, written for the person
-  building and testing the prototype. Never claim a hardware result before the gate that measures
-  it; simulator results are labelled as simulator results.
+- **Writing:** every tracked file (documents, comments, commit messages, generated output) is
+  written as the developer speaking to the users: never as an AI, never addressed to the
+  developer, and without change history ("now", "at first"). Notes for the developer go in the
+  chat or in `notes/` (git-ignored). Plain English, short sentences, no unexplained jargon,
+  written for the person building and testing the prototype. Never claim a hardware result
+  before the gate that measures it; simulator results are labelled as simulator results.
 - **Code:** C++17, no exceptions, no heap use in the 5 Hz path, no external libraries in the core.
   Python tools need only the standard library, except `fit_thermal.py` (numpy, scipy) and
   `serial_log.py` (pyserial). Paths with `pathlib`; everything runs on Linux and Windows.

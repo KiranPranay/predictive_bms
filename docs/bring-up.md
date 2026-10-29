@@ -134,10 +134,10 @@ Model `off`. Online resistance tracking starts here.
    and type the `model ocv` line. The rest leak estimate starts working with it.
 3. Pass: abnormal heat below 0.25 °C/min and the 5-minute error at most 0.5 °C RMS during the
    charge.
-4. **Step 5 (a simulated high-cell or high-temperature condition opens only K_CHARGE).** The
-   firmware has no way to fake a reading on a live pack; that is deliberate. This step was shown
-   in bench mode at Gate 3 and by the simulator scenarios `cell_high_charge` and
-   `charge_overtemp`. Agree with the guide that this record covers it.
+4. **Step 5 (a simulated high-cell or high-temperature condition opens only K_CHARGE).** By
+   design, the firmware cannot fake a reading while a pack is connected. This step is therefore
+   shown in bench mode at Gate 3 and by the simulator scenarios `cell_high_charge` and
+   `charge_overtemp`; attach both records to the Gate 10 sheet.
 
 ## Gate 11: predictive layer
 

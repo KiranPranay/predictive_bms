@@ -149,7 +149,7 @@ Pass / stop: ______  Signed: ______
 
 `model ocv` typed: ______.  Charger CC/CV behaviour: ______.  End voltage and spread: ______.
 Largest abnormal heat during the charge: ______.  5-minute error, °C RMS: ______.
-Step 5 covered by: ______ (agreed with the guide: ______).
+Step 5 covered by (bench mode record, scenario output): ______.
 
 Pass / stop: ______  Signed: ______  Witness: ______
 

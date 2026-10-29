@@ -195,6 +195,5 @@ Board A (sense)                                   Board B (control)
   of a few holes and cut unused strips.
 - Strain-relieve every wire that leaves a board.
 - Keep the NTC and tap lines away from the relay contacts and the LM2596.
-- No PCB is designed for this project, so the permanent board of Gate 12 is a carefully soldered
-  perfboard with this layout. BOM item 20 still says "move to a PCB before final enclosure"; that
-  note belongs to the bms-moosi repository and should be changed there to match.
+- The prototype has no PCB: the permanent board of Gate 12 is a carefully soldered perfboard
+  with this layout.

@@ -71,8 +71,8 @@ to an 11 % overshoot (see [simulator.md](simulator.md)) while a 1 W fault still 
 
 ## 4. How the firmware reads the architecture
 
-Where the text left a choice, the firmware takes the reading below. Each one is safe-side or
-needed for the stated behaviour; items 5 and 6 are worth writing into the architecture itself.
+Where the text leaves a choice, the firmware takes the reading below. Each one is on the safe
+side or is needed for the stated behaviour.
 
 1. **The 100 mV jump check (section 5)** compares each cell with the previous reading after
    allowing for the change of current (R × ΔI). Without this, every load step above about 3 A
