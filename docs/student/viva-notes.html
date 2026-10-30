@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Viva notes</title><style>
+@page { size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: "Predictive BMS · viva notes"; font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; }
+  @bottom-right { content: "page " counter(page) " of " counter(pages); font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; } }
+@page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+body { font: 10.8pt/1.5 'Liberation Sans', Arial, Helvetica, sans-serif; color: #1d1d1b; margin: 0; }
+h1 { font-size: 20pt; margin: 0 0 4mm; }
+h2 { font-size: 15pt; margin: 0 0 3mm; padding-bottom: 1.5mm; border-bottom: 1.5px solid #2a78d6; break-after: avoid; }
+h3 { font-size: 12pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.6mm; }
+ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+li { margin-bottom: 1.2mm; }
+section { break-before: page; }
+section.flow { break-before: auto; margin-top: 6mm; }
+figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; max-height: 120mm; border: 1px solid #ddd; }
+figure.small img { max-height: 60mm; }
+figure.mid img { max-height: 88mm; }
+figure.tiny img { max-height: 46mm; }
+figure.chart img { width: 70%; border: none; }
+figcaption { font-size: 9pt; color: #4f4d48; margin-top: 1.5mm; text-align: left; }
+table { border-collapse: collapse; width: 100%; font-size: 9.4pt; margin: 2mm 0 4mm; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: #eef4fb; text-align: left; padding: 1.4mm 1.8mm; border-bottom: 1px solid #9db8dc; }
+td { padding: 1.2mm 1.8mm; border-bottom: 1px solid #e3e0d6; vertical-align: top; }
+table.plan td:first-child { width: 17%; white-space: nowrap; }
+table.trouble td:first-child { width: 36%; }
+.say { background: #eef7ee; border-left: 3px solid #1baf7a; padding: 2mm 3mm; margin: 2mm 0 3.5mm; break-inside: avoid; }
+.note { background: #fff7e6; border-left: 3px solid #e07b00; padding: 2mm 3mm; margin: 2mm 0 4mm; font-size: 10pt; break-inside: avoid; }
+.safety { background: #fdeceb; border-left: 3px solid #d03b3b; padding: 2mm 3mm; margin: 2mm 0 4mm; break-inside: avoid; }
+ol.steps > li { margin-bottom: 1.8mm; }
+.cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; }
+.cover .top { margin-top: 28mm; }
+.cover .kicker { font-size: 13pt; color: #2a78d6; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 4mm; }
+.cover .title { font-size: 27pt; font-weight: bold; line-height: 1.15; margin-bottom: 6mm; }
+.cover .sub { font-size: 14pt; color: #4f4d48; margin-bottom: 12mm; }
+.cover .meta { font-size: 11pt; line-height: 1.7; }
+.cover .foot { font-size: 9.5pt; color: #4f4d48; border-top: 1px solid #ccc; padding-top: 3mm; }
+.toc { columns: 2; font-size: 11pt; }
+code, .key { font-family: 'Liberation Mono', monospace; font-size: 9.6pt; background: #f3f2ee; padding: 0 1mm; }
+.qa { break-inside: avoid; margin-bottom: 3mm; }
+.qa .q { font-weight: bold; }
+.qa .a { margin-left: 6mm; }
+dl.gloss dt { font-weight: bold; margin-top: 2mm; break-after: avoid; }
+dl.gloss dd { margin: 0 0 1mm 6mm; }
+.fill { background: #fff3c4; padding: 0 1mm; }
+</style></head><body>
+<div class="cover">
+  <div class="top">
+    <div class="kicker">VIVA NOTES</div>
+    <div class="title">Predictive Thermal Battery Management System for Li-ion Battery Packs</div>
+    <div class="sub">The whole project in simple words, likely questions with answers, and a glossary</div>
+    <div class="meta">Muskan Sulathana · Guide: Dr. M. Rupesh</div>
+  </div>
+  <div class="foot">How to use these notes: read sections 1 to 12 once, slowly. Then read the questions in section 13
+  and answer each one aloud in your own words before you read the model answer. Every technical word is explained in
+  the glossary at the end. All results are simulation results: the hardware is not built yet.</div>
+</div>
+
+<section>
+<h2>Contents</h2>
+<ol class="toc">
+<li>The problem</li><li>The idea</li><li>The system: two layers</li><li>The components</li>
+<li>How each measurement works</li><li>The heat model of a cell</li><li>The Kalman filter in plain words</li>
+<li>Abnormal heat and the risk levels</li><li>Forecasts and the 5-minute check</li><li>The leak estimate</li>
+<li>The tools</li><li>The results so far</li><li>Likely viva questions</li><li>Glossary</li>
+</ol>
+
+<h2 style="margin-top:8mm">1. The problem</h2>
+<p>A lithium-ion cell stores a lot of energy in a small can. It is safe inside its limits. Outside them it can be
+damaged, and it can become dangerous.</p>
+<ul>
+<li><b>Heat in a healthy cell.</b> Current flows through the cell's small internal resistance R. This makes heat,
+I²R, called Joule heat. This heat is normal and expected.</li>
+<li><b>Heat from a fault.</b> A defect or an internal short makes extra heat. The current does not explain this heat.</li>
+<li><b>Thermal runaway.</b> If a cell gets hot enough, reactions inside it start to make heat. More heat makes the
+reactions faster, which makes more heat. This chain can end in fire. Disconnecting the pack does not stop heat that
+is made inside the cell.</li>
+</ul>
+<p><b>Why a fixed limit is late.</b> A normal BMS waits until the cell surface reaches a fixed temperature, for example
+55 °C. But a cell is a large body. It warms slowly. With a fault inside, the surface may need many minutes, or may
+never, reach 55 °C. By then the fault has been there for a long time.</p>
+</section>
+
+<section>
+<h2>2. The idea: predict, compare, flag</h2>
+<p>The project uses a <b>model</b> of how a healthy cell heats. Five times a second the supervisor:</p>
+<ol>
+<li><b>Predicts</b> the cell's temperature from its current, using the model;</li>
+<li><b>Compares</b> the prediction with the real reading of the temperature sensor;</li>
+<li><b>Flags</b> the difference. Heat that the current cannot explain is called <b>abnormal heat</b>, in watts.</li>
+</ol>
+<p>A healthy cell under load has abnormal heat near zero, because its current explains its heating. So normal use is
+never flagged. A fault shows positive abnormal heat within about a minute, while the cell is still cool.</p>
+<p>This follows the predict–compare–flag structure of the base paper, Ojo et al. (IEEE Transactions on Industrial
+Electronics, 2021). The base paper uses a neural network. This project uses a physical heat model and a Kalman
+filter instead. It needs no training data, every output has a unit (°C or W), and it runs on a low-cost ESP32.</p>
+</section>
+
+<section>
+<h2>3. The system: two layers</h2>
+<figure class="mid"><img src="../architecture/current-architecture.svg"><figcaption>The architecture (revision 2.2): power, protection and sensing.</figcaption></figure>
+<p><b>The pack.</b> Four NCR18650GA cells in series (4S1P): 14.4 V nominal, 16.8 V full, 3.3 Ah, about 47.5 Wh. The
+prototype is limited to 5 A discharge and 1.5 A charge.</p>
+<p><b>Layer A, the hardware BMS.</b> A ready-made 4S protection board. It always works, even if the ESP32 fails. It
+stops charging at about 4.25 V per cell, stops discharging at about 2.7 V per cell, protects against short circuits,
+and balances the cells (30 mA from 4.18 V).</p>
+<p><b>Layer B, the ESP32 supervisor.</b> It measures every cell voltage, the pack current, four cell temperatures and
+the air temperature, five times a second. It runs the predictive layer and drives two relays:</p>
+<ul>
+<li><b>K_LOAD</b> connects the load, and <b>K_CHARGE</b> connects the charger. They are separate, so the supervisor can
+stop charging but allow discharge, or the other way round.</li>
+<li>Both are <b>normally open</b>, with pull-up resistors on their inputs. If the ESP32 resets, crashes or loses power,
+both relays open by themselves.</li>
+<li>A trip is <b>latched</b>: it stays until a deliberate manual reset, and the reset is allowed only when everything
+is safe again.</li>
+</ul>
+<p><b>Why two layers?</b> So that no single failure removes all protection. The hardware BMS is the final backstop,
+and nothing in the program tries to override it.</p>
+</section>
+
+<section>
+<h2>4. The components and why each one is there</h2>
+<table class=""><thead><tr><th>Part</th><th>Why it is there</th></tr></thead><tbody><tr><td>4 × NCR18650GA cells (4S1P)</td><td>The battery: 3.3 Ah each, matched at Gate 4.</td></tr><tr><td>4S hardware BMS (20 A board)</td><td>Layer A: voltage, short-circuit protection and balancing that always works.</td></tr><tr><td>ESP32 DevKit</td><td>Layer B: the supervisor. Runs the predictive layer and the dashboard.</td></tr><tr><td>ADS1115 (16-bit ADC)</td><td>Measures the four cell taps accurately.</td></tr><tr><td>330 kΩ / 56 kΩ dividers, 10 kΩ + 100 nF filters, clamps</td><td>Bring the tap voltages down to the ADC's range, remove noise, protect the inputs.</td></tr><tr><td>5 × 10k B3950 NTC thermistors</td><td>Four on the cells, one in the air.</td></tr><tr><td>INA226 module + 5 mΩ shunt</td><td>Measures the pack current in both directions.</td></tr><tr><td>LM2596 buck converter (5.0 V)</td><td>Powers the ESP32 and the relay module from the pack.</td></tr><tr><td>Dual 5 V relay module</td><td>The two disconnects, K_LOAD and K_CHARGE.</td></tr><tr><td>7.5 A blade fuse and holder</td><td>Protects the wiring against a large fault current.</td></tr><tr><td>Buzzer and red LED</td><td>A local alarm that works without Wi-Fi.</td></tr><tr><td>XT60 and JST-XH connectors, wire</td><td>Power, charger and balance connections.</td></tr><tr><td>Nickel strip, spacers, fish paper, sleeve</td><td>Build the welded pack safely.</td></tr><tr><td>Two perfboards (no PCB)</td><td>Board A: the cell taps and the ADS1115. Board B: the ESP32, NTC dividers, INA226, relay inputs and alarm.</td></tr><tr><td>PETG enclosure</td><td>A vented case. It is not a fire enclosure.</td></tr><tr><td>16.8 V, 1.5 A CC/CV charger</td><td>Charges the pack through the charge relay.</td></tr></tbody></table>
+<p>The full parts list costs about ₹9,260 at replacement prices (Build Guide, section 6).</p>
+<figure class="small"><img src="../build-guide/figures/sld.svg"><figcaption>Single-line diagram: cells, BMS, fuse, shunt, relays, load and charger.</figcaption></figure>
+</section>
+
+<section>
+<h2>5. How each measurement works</h2>
+<h3>Cell voltages: dividers and the ADS1115</h3>
+<p>The ADS1115 measures four "taps" of the pack against its negative end: 4.2, 8.4, 12.6 and 16.8 V when full. Each tap
+goes through a 330 kΩ and 56 kΩ divider, so 16.8 V becomes about 2.4 V. Then a 10 kΩ resistor and a 100 nF capacitor
+filter out noise. Cell 1 is the first tap; every other cell is the difference of two neighbouring taps.</p>
+<p><b>KiCad simulation:</b> at full charge the ADC inputs are 0.59, 1.19, 1.78, 2.38 V,
+all below the 3.0 V limit. Every 10 nA of leakage at an ADC input moves a cell reading by about
+4.1 mV, so the clamp must leak far less than
+49 nA. The filter's cut-off is about 27 Hz.</p>
+<figure class="small"><img src="../build-guide/figures/circuit-taps.svg"><figcaption>One cell-tap channel.</figcaption></figure>
+<h3>Temperatures: NTC dividers</h3>
+<p>An NTC thermistor's resistance falls as it gets hotter (10 kΩ at 25 °C). With a 10 kΩ resistor from 3.3 V above it,
+the voltage in the middle tells the temperature. The ESP32's ADC1 reads it.</p>
+<p><b>KiCad simulation:</b> 1.65 V at 25 °C, about 1.00 V at 45 °C and 0.76 V at
+55 °C. The reading stays in the ESP32's accurate range from about 3 °C to above 100 °C.</p>
+<h3>Current: shunt and INA226</h3>
+<p>A 5 mΩ resistor (the shunt) sits in the pack's current path. The current makes a small voltage across it:
+V = I × R. The INA226 reads this voltage in both directions. Discharge is positive, charge is negative.</p>
+<p><b>KiCad simulation:</b> 25.0 mV at 5 A, well inside the INA226's
+±81.9 mV range. If the module's own 0.1 Ω shunt (R100) is left in place, the reading is about 4.8 % low. So it is
+removed.</p>
+</section>
+
+<section>
+<h2>6. The heat model of a cell</h2>
+<p>Each cell has two parts in the model (from Lin et al., IEEE TCST 2013):</p>
+<ul>
+<li>the <b>core</b>, where heat is made. Its heat capacity is C_core.</li>
+<li>the <b>surface</b> (the can), where the NTC sits. Its heat capacity is C_surf.</li>
+</ul>
+<p>Heat flows from the core to the surface through a thermal resistance R_core, and from the surface to the air
+through a thermal resistance R_air. A <b>heat capacity</b> (J/°C) says how much heat warms a body by 1 °C. A
+<b>thermal resistance</b> (°C/W) says how many degrees it takes to push 1 W through a path.</p>
+<p>The values used now are development values: C_core 40 J/°C and C_surf 5 J/°C (45 J/°C together, as the
+architecture says for an 18650), R_core 2 °C/W and R_air 30 °C/W. Gate 9 replaces them with values fitted on the
+real cells.</p>
+<h3>The electrical analogue</h3>
+<p>Heat flow behaves like electric current. So the model can be drawn as a circuit:</p>
+<table class=""><thead><tr><th>Heat</th><th>Electric circuit</th></tr></thead><tbody><tr><td>Temperature, 1 °C</td><td>Voltage, 1 V</td></tr><tr><td>Heat flow, 1 W</td><td>Current, 1 A</td></tr><tr><td>Heat capacity, 1 J/°C</td><td>Capacitor, 1 F</td></tr><tr><td>Thermal resistance, 1 °C/W</td><td>Resistor, 1 Ω</td></tr><tr><td>Air temperature</td><td>A fixed voltage source</td></tr><tr><td>Heat made in the core</td><td>A current source</td></tr></tbody></table>
+<figure class="small"><img src="../build-guide/figures/kicad-thermal-model.svg"><figcaption>The heat model drawn in KiCad.</figcaption></figure>
+<p><b>Result (KiCad, Octave and Xcos give the same):</b> with 1 W in the core and 25 °C air, the core reaches about
+26.3 °C after 1 minute, 31.1 °C after 5 minutes, 43.3 °C after 20 minutes and 54.5 °C after one hour. It would settle at
+57 °C (25 + 1 W × 32 °C/W). There are two time constants: 8.4 s (core and surface share heat) and 1422 s, about
+24 minutes (the whole cell warms up to the air). That slow time constant is why a fixed limit acts late.</p>
+</section>
+
+<section>
+<h2>7. The Kalman filter in plain words</h2>
+<p>The supervisor runs one Kalman filter per cell, five times a second. Its "state" is three numbers: the core
+temperature, the surface temperature, and the abnormal heat.</p>
+<ol>
+<li><b>Predict.</b> From the last state and the measured current, the model predicts the new state. The expected
+heat is I²R, from the cell's measured resistance.</li>
+<li><b>Compare.</b> It compares the predicted surface temperature with the NTC reading.</li>
+<li><b>Correct.</b> It moves the state towards the reading. How much depends on how much it trusts the model
+and the sensor. If the reading stays above the prediction, the only way to explain it is more heat, so the
+abnormal-heat estimate rises.</li>
+</ol>
+<p>So the filter gives two things no sensor measures: the <b>core temperature</b> and the <b>abnormal heat in
+watts</b>. A simple everyday picture: you know how fast a kettle should warm on a given flame. If it warms faster,
+something else is adding heat, and you can say how much.</p>
+<p>Safety details: the current used in the calculation is limited to 5 A, and the resistance to its expected range, so a
+bad reading cannot "explain away" a fault. The model's values are fitted once at Gate 9 and then fixed, so the model
+can never slowly learn a fault as normal.</p>
+</section>
+
+<section>
+<h2>8. Abnormal heat and the risk levels</h2>
+<p>Abnormal heat is shown in watts and also as the heating rate it causes: watts ÷ 45 J/°C × 60 gives °C per
+minute. So 0.4 W is about 0.5 °C/min, and 0.75 W is about 1.0 °C/min.</p>
+<table class=""><thead><tr><th>Level</th><th>When</th><th>Action</th></tr></thead><tbody><tr><td>0 Normal</td><td>None of the conditions below</td><td>—</td></tr><tr><td>1 Watch</td><td>5-minute check +1.0 °C or more; a cell differs from the others by 0.3 °C/min for 30 s; time to limit under 10 minutes, or current above the safe current for 30 s; leak estimate 20 mA or more; resistance drift over 30 %</td><td>Notice on the dashboard and in the log</td></tr><tr><td>2 Warning</td><td>Abnormal heat 0.5 °C/min (about 0.4 W) for 30 s; or a thermal Watch and an electrical Watch on the same cell together</td><td>Alarm on; both relays stay on</td></tr><tr><td>3 Trip</td><td>Abnormal heat 1.0 °C/min (about 0.75 W) for 10 s; a cell differs from the others by 0.6 °C/min for 10 s; self-acceleration while at Warning</td><td>Both relays open, latched and logged</td></tr></tbody></table>
+<p>A small fault raises the alarm only when two independent kinds of evidence, thermal and electrical, agree. A clear
+fault trips on its own. The rules are fixed tables, so every level can be traced back to the measurement that caused
+it.</p>
+<h3>Other fixed limits (section 8 of the architecture)</h3>
+<table class=""><thead><tr><th>Condition</th><th>Warning</th><th>Trip</th></tr></thead><tbody><tr><td>Any cell high</td><td>4.10 V</td><td>4.15 V: charge off</td></tr><tr><td>Any cell low</td><td>3.20 V</td><td>3.10 V: load off</td></tr><tr><td>Charge temperature</td><td>40 °C</td><td>45 °C: charge off</td></tr><tr><td>Discharge temperature</td><td>50 °C</td><td>55 °C: load off</td></tr><tr><td>Temperature spread</td><td>7 °C</td><td>10 °C: both off</td></tr><tr><td>Pack current</td><td>4.5 A</td><td>5.0 A: load off; 1.6 A: charge off</td></tr></tbody></table>
+</section>
+
+<section>
+<h2>9. Forecasts and the 5-minute check</h2>
+<ul>
+<li><b>Predict and confirm.</b> Every 10 s the supervisor predicts each cell's surface temperature 1 and 5 minutes
+ahead. When that time comes, it checks the prediction against the real reading. Within ±0.5 °C is "confirmed normal".
++1.0 °C or more raises Watch. Example: a small 0.2 W fault is only about 0.27 °C/min, below the warning level, but
+after 5 minutes the cell is about 1.3 °C hotter than predicted, so it raises Watch.</li>
+<li><b>Accuracy record.</b> It keeps the RMS error of its predictions. Gates 9 and 10 require 0.5 °C RMS or less at
+5 minutes. In the simulation the error in normal use was 0.11 to 0.12 °C.</li>
+<li><b>Settling temperature and time to limit.</b> From the current, the model says where each cell will settle, and
+how many minutes until it reaches its limit (45 °C when charging, 55 °C when discharging).</li>
+<li><b>Safe continuous current.</b> The largest current at which every cell settles below its limit. It is near 5 A at
+25 °C and lower on a hot day.</li>
+<li><b>Online resistance.</b> Each change in current of 0.5 A or more gives each cell's resistance, R = ΔV / ΔI. Rising
+resistance means ageing or a weak connection. A drift over 30 % raises Watch.</li>
+<li><b>Self-acceleration.</b> At Warning, if the abnormal heat has grown by 50 % while the core rose by 1 °C within
+120 s, the heat is feeding itself, as at the start of thermal runaway. The supervisor trips at once.</li>
+</ul>
+</section>
+
+<section>
+<h2>10. The leak estimate and the energy cross-check</h2>
+<p>An internal short drains its own cell, even at rest. So it leaves an electrical trace as well as a heat trace.</p>
+<ol>
+<li>The supervisor waits for rest: current below 20 mA, no cell above 4.15 V, and 30 minutes after the last load or
+charge.</li>
+<li>It compares each cell's voltage with the mean of the four. This cancels the drift that all cells share.</li>
+<li>Over 60 minutes, the slope of that difference gives the leak current, using the cell's voltage-to-charge curve
+measured at Gate 10.</li>
+</ol>
+<p>Example from the architecture: a 20 mA leak lowers a mid-charge cell by about 6 mV per hour compared with the others.
+That leak makes only about 0.07 W of heat, too little to see as heat. So the electrical check finds a soft short long
+before it is hot.</p>
+<p><b>Energy cross-check.</b> A leak current I at cell voltage V makes V × I watts of heat inside the cell. When this
+matches the abnormal heat from the Kalman filter, two independent methods point to the same fault.</p>
+<p><b>Simulation result (Gate 11 soft short, 47 Ω across cell 2):</b> the leak estimate read about 73 mA against about
+79 mA really drawn, and the abnormal heat and the leak heat agreed: level Warning.</p>
+</section>
+
+<section>
+<h2>11. The tools, and why each one</h2>
+<table class=""><thead><tr><th>Tool</th><th>What it does in this project</th><th>Why this tool</th></tr></thead><tbody><tr><td><b>KiCad 10 + ngspice</b></td><td>The four analog circuits (cell taps, NTC divider, current shunt) and the heat model drawn as a circuit, simulated and checked</td><td>Free, open source, used in industry. ngspice is the circuit simulator inside KiCad.</td></tr><tr><td><b>GNU Octave</b></td><td>The heat model and the Kalman filter written a second time and compared with the controller program</td><td>Free. It runs MATLAB .m files, so the work also runs in MATLAB, which needs a paid licence.</td></tr><tr><td><b>Scilab Xcos</b></td><td>The heat model and the abnormal-heat detection as block diagrams</td><td>Free. It is the block-diagram tool like Simulink.</td></tr><tr><td><b>The C++ simulator</b></td><td>Runs the real controller code on a PC against a simulated pack: 30 test scenarios and the dashboard demonstrations</td><td>The same code that runs on the ESP32 is tested before any cell is connected (software-in-the-loop).</td></tr><tr><td><b>ESP32 + ESP-IDF</b></td><td>The real controller. The program is C++, on FreeRTOS, with the safety task at 5 Hz and a watchdog</td><td>ESP-IDF is Espressif's official toolset. It builds the firmware without warnings.</td></tr><tr><td><b>The dashboard</b></td><td>One web page: cell cards, charts, the system drawing, the demonstrations</td><td>The ESP32 serves it over its own Wi-Fi; on a PC the simulator serves it.</td></tr></tbody></table>
+<h3>How the checks fit together</h3>
+<ul>
+<li><b>KiCad</b> checks the electronics.</li>
+<li><b>Octave</b> checks that the controller program computes the model correctly.</li>
+<li><b>Xcos</b> shows the method as a block diagram.</li>
+<li><b>The C++ simulator</b> tests the complete program against every fault the build gates ask for.</li>
+</ul>
+</section>
+
+<section>
+<h2>12. The results so far (all in simulation)</h2>
+<h3>The guided demonstrations against a fixed-limit BMS</h3>
+<table class=""><thead><tr><th>Demonstration</th><th>This project</th><th>Fixed-limit BMS</th></tr></thead><tbody><tr><td>Heat with no current, 1 W in cell 2</td><td>Trip about 1 minute after the heat began, cell near 26 °C</td><td>No reaction</td></tr><tr><td>A cell defect under 3 A</td><td>Trip about 2 minutes after the fault, near 28 °C; the cell then cools</td><td>Trip about 7 minutes after the fault, at 55 °C</td></tr><tr><td>Thermal runaway onset (heat in cell 3 that grows as it warms)</td><td>Trip about 8 minutes after it began, near 29 °C</td><td>Trip about 4 minutes later, at 55 °C</td></tr><tr><td>Soft internal short, 47 Ω (Gate 11)</td><td>Warning: leak about 73 mA against 79 mA drawn; heat and leak agree</td><td>No reaction</td></tr><tr><td>NTC lifted off its cell under 3 A</td><td>Sensor fault within about 10 s; both relays open</td><td>No reaction</td></tr><tr><td>Normal use (discharge, rest, charge)</td><td>Normal throughout; 5-minute error 0.11 to 0.12 °C RMS</td><td>—</td></tr></tbody></table>
+<p>Main result: for the cell defect, this project acts about 5 minutes earlier, with the cell about 27 °C cooler. For heat
+made inside a cell, no BMS can stop the heat by disconnecting; what the predictive layer gives there is warning time.</p>
+<figure class="small"><img src="../build-guide/snapshots/defect-compare.png"><figcaption>The dashboard's comparison after the cell-defect demonstration.</figcaption></figure>
+<h3>Tests and cross-checks</h3>
+<ul>
+<li><b>26 unit tests and 30 scenarios</b> pass. The scenarios rehearse Gates 1, 2, 9, 10 and 11 with each gate's own
+pass rules.</li>
+<li><b>KiCad:</b> all 11 circuit checks pass; KiCad's electrical rules check finds no violation.</li>
+<li><b>ngspice and Octave</b> solve the heat model two ways and agree within 0.0002 °C.</li>
+<li><b>Octave against the controller program</b>, every sample replayed:</li>
+</ul>
+<table class=""><thead><tr><th>Scenario</th><th>Largest core-temperature difference</th><th>Largest abnormal-heat difference</th></tr></thead><tbody><tr><td><span class='key'>discharge_steps</span></td><td>0.0029 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>heat_no_current</span></td><td>0.0066 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>load_defect</span></td><td>0.0026 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>soft_short</span></td><td>0.0040 °C</td><td>0.0010 W</td></tr></tbody></table>
+<ul>
+<li><b>Xcos:</b> the heat model built from blocks agrees with ngspice and Octave within 0.004 °C.</li>
+<li><b>Xcos:</b> with 1 W of abnormal heat, the predictive trip comes 117 s after the fault starts (surface at 30.9 °C). A fixed 55 °C limit trips 32 minutes after it starts. The estimate settles at the true 1.00 W, and stays at zero before the fault: no false alarm.</li>
+</ul>
+<h3>What is not done yet</h3>
+<ul>
+<li>The hardware is not built. It is built gate by gate, Gates 0 to 12 (Build Guide, section 14). The firmware has not
+yet run on an ESP32.</li>
+<li>The heat model's values are estimates until Gate 9 measures them on the real cells.</li>
+<li>The clamp part is chosen at Gate 1 after a leakage test.</li>
+</ul>
+<div class="safety"><b>Safety rules.</b> No lithium cell is connected before Gate 3. The first power-up and the first
+charge are never done alone. A live cell is never driven into thermal runaway, overcharge or over-discharge to prove a
+limit: limits are proven with simulated signals, the simulator, a heated dummy cylinder, and a supervised 47 Ω
+resistor. The hardware BMS stays connected as the final backstop. The enclosure is vented and is not a fire
+enclosure.</div>
+</section>
+
+<section>
+<h2>13. Likely viva questions, with short answers</h2>
+<p>Answer in your own words. Short, clear answers are best. If you do not know, say what you do know and where in the
+project the answer would come from (for example, "Gate 9 measures that").</p>
+<h3>Basic ideas</h3><div class="qa"><div class="q">1. What is a battery management system (BMS)?</div><div class="a">A circuit that watches a battery pack and protects it. It measures cell voltages, current and temperature, and it disconnects the pack when something is unsafe. It can also balance the cells.</div></div><div class="qa"><div class="q">2. Why does a lithium-ion pack need a BMS?</div><div class="a">Lithium-ion cells are damaged or become unsafe if they are charged too high, discharged too low, carry too much current or get too hot. The BMS keeps every cell inside safe limits.</div></div><div class="qa"><div class="q">3. What is thermal runaway?</div><div class="a">A chain of heat-making reactions inside a cell that speed up as the cell gets hotter. The heat makes more heat. It can end in fire. It cannot be stopped by disconnecting the pack, so early warning matters.</div></div><div class="qa"><div class="q">4. What does 4S1P mean?</div><div class="a">Four cells in series (4S) and one cell in each place (1P). The pack has four cells in one row.</div></div><div class="qa"><div class="q">5. What are the voltages of your pack?</div><div class="a">14.4 V nominal (4 × 3.6 V) and 16.8 V when full (4 × 4.2 V).</div></div><div class="qa"><div class="q">6. What is the capacity and energy of the pack?</div><div class="a">3.3 Ah, from the cell label. That is about 47.5 Wh at the nominal voltage.</div></div><div class="qa"><div class="q">7. Which cell do you use?</div><div class="a">The NCR18650GA, an 18650-size NMC lithium-ion cell. 18650 means 18 mm wide and 65 mm long.</div></div><div class="qa"><div class="q">8. What is cell balancing?</div><div class="a">Keeping all cells at the same charge. The hardware BMS does passive balancing: above 4.18 V it bleeds about 30 mA from a cell that is ahead of the others.</div></div><div class="qa"><div class="q">9. What is the current limit of your prototype?</div><div class="a">5 A continuous for discharge and 1.5 A for charge. The hardware BMS board is rated 20 A, but 20 A is not the project limit.</div></div><div class="qa"><div class="q">10. Why is a fixed temperature limit late?</div><div class="a">A cell is large and heats slowly. Its surface needs many minutes to reach 55 °C, even when a fault is already making heat inside. By then the fault has been there a long time.</div></div><div class="qa"><div class="q">11. Where does heat in a cell come from?</div><div class="a">Mainly from the current flowing through the cell&#x27;s internal resistance: I²R, called Joule heat. A fault, like an internal short, adds heat that the current does not explain.</div></div><div class="qa"><div class="q">12. What is an internal short?</div><div class="a">A small, unwanted path for current inside a cell. It drains the cell even at rest, and it heats the cell. A soft short is a weak one that grows slowly.</div></div><h3>The design</h3><div class="qa"><div class="q">13. Why two protection layers?</div><div class="a">So that one failure cannot remove all protection. Layer A, the hardware BMS, always works, even if the ESP32 or its program fails. Layer B, the ESP32 supervisor, adds the predictive layer and separate charge and load relays.</div></div><div class="qa"><div class="q">14. What does the hardware BMS do?</div><div class="a">It stops charging above about 4.25 V per cell, stops discharging below about 2.7 V per cell, protects against short circuit and over-current, and balances the cells.</div></div><div class="qa"><div class="q">15. Why are the relays normally open?</div><div class="a">Normally open means the contact is open when the relay has no power. If the ESP32 resets, crashes or loses power, both relays open. The safe state is the default.</div></div><div class="qa"><div class="q">16. Why are there pull-up resistors on the relay inputs?</div><div class="a">The relay inputs are active LOW. The 10 kΩ pull-ups keep the inputs HIGH, so the relays stay off while the ESP32 is starting or if a wire comes loose.</div></div><div class="qa"><div class="q">17. Why two relays, one for charge and one for load?</div><div class="a">So the supervisor can stop charging but still allow discharge, or the other way round. For example, a high cell voltage opens only the charge relay.</div></div><div class="qa"><div class="q">18. Why is there a fuse, and why 7.5 A?</div><div class="a">The fuse protects the wiring and the relay path from a large fault current. 7.5 A is above the 5 A working current, so it does not blow in normal use.</div></div><div class="qa"><div class="q">19. Why use an ADS1115 for the cell voltages?</div><div class="a">It is a 16-bit ADC: much finer and more accurate than the ESP32&#x27;s own ADC. The leak estimate needs to see changes of a few millivolts.</div></div><div class="qa"><div class="q">20. Why a 330 kΩ and 56 kΩ divider?</div><div class="a">The top tap is up to 16.8 V, but the ADC input must stay low. The divider makes 16.8 V into about 2.44 V. High values draw very little current from the cells.</div></div><div class="qa"><div class="q">21. Why the 10 kΩ resistor and 100 nF capacitor?</div><div class="a">Together with the divider they form a low-pass filter. It removes fast noise and passes the slow cell voltage. In the KiCad simulation the cut-off is about 27 Hz.</div></div><div class="qa"><div class="q">22. What are the clamps for, and why is the part TBD?</div><div class="a">Clamps protect the ADC input from a voltage spike. Their leakage current upsets the high-value divider, so the part is chosen at Gate 1 after a leakage test. The simulation shows that every 10 nA of leakage moves a cell reading by about 4.1 mV.</div></div><div class="qa"><div class="q">23. How do you get each cell&#x27;s voltage?</div><div class="a">The ADC measures each tap against the pack&#x27;s negative end. Cell 1 is the first tap. Each other cell is the difference between two neighbouring taps.</div></div><div class="qa"><div class="q">24. Why NTC thermistors?</div><div class="a">They are small, cheap and respond quickly. A 10 kΩ NTC at 25 °C changes its resistance a lot with temperature, so the reading is sensitive.</div></div><div class="qa"><div class="q">25. Why five NTCs?</div><div class="a">One on each of the four cells, and one in free air to measure the ambient temperature. The heat model needs the air temperature.</div></div><div class="qa"><div class="q">26. Why only ADC1 pins for the NTCs?</div><div class="a">On the ESP32, ADC2 does not work while Wi-Fi is on. So the five NTCs use ADC1 pins, GPIO32 to GPIO36.</div></div><div class="qa"><div class="q">27. Why the INA226 with a 5 mΩ shunt?</div><div class="a">The INA226 measures current in both directions, charge and discharge, with fine steps of 2.5 µV. The 5 mΩ shunt gives 25 mV at 5 A and wastes only 0.125 W. It replaced the ACS712 Hall sensor in the BOM for a calibrated, bidirectional reading.</div></div><div class="qa"><div class="q">28. Why must the INA226 module&#x27;s R100 resistor be removed?</div><div class="a">The module has its own 0.1 Ω shunt. If it stays, it carries part of the current and the reading is about 4.8 % low (KiCad simulation). The 5 mΩ external shunt replaces it.</div></div><div class="qa"><div class="q">29. What is Kelvin wiring?</div><div class="a">Two separate thin wires that measure the voltage right at the shunt&#x27;s own pads. The big current does not flow in them, so the wire resistance does not spoil the reading.</div></div><div class="qa"><div class="q">30. Why is the LM2596 connected before the shunt?</div><div class="a">The LM2596 powers the electronics. If its current went through the shunt, the pack would never look at rest, and the leak estimate could never run.</div></div><div class="qa"><div class="q">31. Why the ESP32?</div><div class="a">It is low-cost, fast (240 MHz with a floating-point unit), has Wi-Fi for the dashboard, and enough memory. The whole predictive layer uses well under 1 % of its processor.</div></div><div class="qa"><div class="q">32. Why is Wi-Fi not part of the safety chain?</div><div class="a">Wi-Fi can fail. All protection works with Wi-Fi off. Wi-Fi only carries the dashboard.</div></div><div class="qa"><div class="q">33. Why are trips latched?</div><div class="a">A latched trip stays on until a deliberate manual reset. A fault must not clear by itself and switch the pack back on. The reset is allowed only when every cell is between 3.20 and 4.10 V, every NTC is below 40 °C, all sensors are plausible, and the cause has been clear for 60 s.</div></div><div class="qa"><div class="q">34. How often does the supervisor measure?</div><div class="a">Five times a second (5 Hz). Each reading goes through a median-of-5 filter to reject single bad samples.</div></div><h3>The predictive layer</h3><div class="qa"><div class="q">35. What makes your BMS predictive?</div><div class="a">It runs a heat model of every cell. The model says what the cell should be doing. The difference from the real reading shows heat that should not be there, long before a fixed limit.</div></div><div class="qa"><div class="q">36. What is abnormal heat?</div><div class="a">Heat that the cell&#x27;s current cannot explain, measured in watts. For a healthy cell it is near zero, even under load. A fault makes it positive.</div></div><div class="qa"><div class="q">37. What is the two-state thermal model?</div><div class="a">Each cell has a core and a surface. Heat is made in the core, flows to the surface through a thermal resistance, and from the surface to the air. Each part has a heat capacity.</div></div><div class="qa"><div class="q">38. Why estimate the core temperature?</div><div class="a">The sensor can only touch the surface. Under load the core is hotter than the surface. The model gives the core temperature, which no sensor can measure.</div></div><div class="qa"><div class="q">39. What is a Kalman filter, in simple words?</div><div class="a">A method that mixes a prediction from a model with a noisy measurement, trusting each according to how reliable it is. Every sample it predicts, compares with the reading, and corrects. It also estimates things that are not measured, like the core temperature and the abnormal heat.</div></div><div class="qa"><div class="q">40. Why not a neural network, like the base paper?</div><div class="a">A neural network needs a lot of training data, which does not exist for our cells. A physical model needs no training, every output has a unit, and it is small enough to run on the ESP32.</div></div><div class="qa"><div class="q">41. What are the risk levels?</div><div class="a">0 Normal, 1 Watch (a notice), 2 Warning (alarm on, the pack keeps working), 3 Trip (both relays open and latch).</div></div><div class="qa"><div class="q">42. What abnormal heat causes a Warning or a Trip?</div><div class="a">Warning: 0.5 °C/min, about 0.4 W, for 30 s. Trip: 1.0 °C/min, about 0.75 W, for 10 s.</div></div><div class="qa"><div class="q">43. How do you convert watts to °C per minute?</div><div class="a">Divide the heat by the cell&#x27;s total heat capacity, about 45 J/°C, and multiply by 60. For example, 0.75 W ÷ 45 J/°C × 60 = 1.0 °C/min.</div></div><div class="qa"><div class="q">44. What is the 5-minute check?</div><div class="a">Every 10 s the supervisor predicts each cell&#x27;s temperature 1 and 5 minutes ahead. When the time comes, it compares the prediction with the reading. An error of +1.0 °C or more raises Watch.</div></div><div class="qa"><div class="q">45. Why compare a cell with the other three?</div><div class="a">All four cells carry the same current, so their abnormal heat should match. A cell out of step with the others is suspicious, even when every value is still small.</div></div><div class="qa"><div class="q">46. What is self-acceleration?</div><div class="a">When abnormal heat grows as the cell gets hotter, the heat is feeding itself, as at the start of thermal runaway. If, while at Warning, the abnormal heat rises by 50 % while the core rises by 1 °C within 120 s, the supervisor trips at once.</div></div><div class="qa"><div class="q">47. What is the leak estimate?</div><div class="a">At rest, a cell with an internal short slowly loses voltage compared with the others. The supervisor measures this drift over 60 minutes and turns it into a leak current. 20 mA or more raises Watch.</div></div><div class="qa"><div class="q">48. What is the energy cross-check?</div><div class="a">A leak current I at voltage V makes heat V × I inside the cell. If this matches the abnormal heat from the thermal model, two independent methods, electrical and thermal, point to the same fault.</div></div><div class="qa"><div class="q">49. What is the safe continuous current?</div><div class="a">The largest current at which every cell would settle below its temperature limit. The supervisor shows it on the dashboard.</div></div><div class="qa"><div class="q">50. How do you detect an NTC that has come off its cell?</div><div class="a">Under load, the cell reads cooler than its own current can explain, so the abnormal heat becomes negative. Below −0.4 W for 60 s with at least 1 A is a sensor fault, and both relays open.</div></div><div class="qa"><div class="q">51. What happens before the model is fitted?</div><div class="a">The thermal parts are switched off and simple rate-of-rise limits are used: 0.5 °C/min Warning and 1.0 °C/min Trip. The model is fitted at Gate 9.</div></div><h3>Tools and results</h3><div class="qa"><div class="q">52. Why KiCad?</div><div class="a">It is a free, open-source circuit design tool used in industry. It has a built-in circuit simulator, ngspice.</div></div><div class="qa"><div class="q">53. What is ngspice?</div><div class="a">A SPICE circuit simulator. SPICE programs calculate the voltages and currents in a circuit. KiCad uses ngspice inside.</div></div><div class="qa"><div class="q">54. What did the KiCad simulation show?</div><div class="a">The ADC inputs stay below 3.0 V; leakage of 10 nA at an ADC input moves a cell reading by about 4.1 mV; the NTC voltage is 1.65 V at 25 °C; the shunt gives 25 mV at 5 A; and the heat model&#x27;s numbers match Octave&#x27;s.</div></div><div class="qa"><div class="q">55. Why GNU Octave and not MATLAB?</div><div class="a">MATLAB needs a paid licence. GNU Octave is free and runs the same .m files, so the work also runs in MATLAB.</div></div><div class="qa"><div class="q">56. What did the Octave check show?</div><div class="a">Octave&#x27;s copy of the estimator, given the same data, gives the same core temperature and abnormal heat as the controller program: within 0.007 °C and 0.0013 W on four simulated scenarios.</div></div><div class="qa"><div class="q">57. What is Xcos?</div><div class="a">The block-diagram simulator in Scilab, a free tool like Simulink. We built the heat model and the abnormal-heat detection as block diagrams.</div></div><div class="qa"><div class="q">58. What is the C++ simulator?</div><div class="a">A program that runs the real controller code on a PC against a simulated pack: four cells with their heat, the hardware BMS, noisy sensors, and every fault. It has 30 test scenarios and the dashboard demonstrations.</div></div><div class="qa"><div class="q">59. How do you know the controller program works?</div><div class="a">26 unit tests and 30 scenarios test it in simulation; the Octave copy gives the same numbers; and on the real board each build gate tests it with its own pass rules.</div></div><div class="qa"><div class="q">60. What is the main result?</div><div class="a">In simulation, with a cell defect under a 3 A load, this project trips about 5 minutes earlier than a fixed-limit BMS, with the cell about 27 °C cooler. A fixed-limit BMS does not react at all to 1 W of heat with no current.</div></div><div class="qa"><div class="q">61. Have you tested on real cells?</div><div class="a">Not yet. The hardware is the next step, gate by gate. All results now are simulation results. The real values, like the thermal parameters, are measured at the gates.</div></div><div class="qa"><div class="q">62. Why not test by heating a real cell until it fails?</div><div class="a">That is dangerous and is never done. Limits are proven with simulated signals, the simulator, a heated dummy cylinder, and a supervised 47 Ω resistor that copies a soft short safely.</div></div><div class="qa"><div class="q">63. What is new in your project?</div><div class="a">In the papers reviewed, none does all of this on a low-cost controller: estimating the abnormal heat in watts with a physical model and Kalman filter, predicting and then confirming each forecast, cross-checking thermal and electrical evidence, and forecasting a safe current.</div></div><h3>Limits and future work</h3><div class="qa"><div class="q">64. What happens if the ESP32 crashes?</div><div class="a">Both relays open, because they are normally open and their inputs are pulled up. The hardware BMS keeps protecting. The crash is latched.</div></div><div class="qa"><div class="q">65. What if a relay contact welds shut?</div><div class="a">The hardware BMS and the fuse can still open or clear severe faults. The pack is then removed from service.</div></div><div class="qa"><div class="q">66. What if a sensor breaks?</div><div class="a">An open, shorted or stuck NTC, or a lost ADS1115 or INA226, is a sensor fault. It latches and opens the relays within about 2 s (60 s for a stuck NTC).</div></div><div class="qa"><div class="q">67. What are the limitations?</div><div class="a">The heat model&#x27;s values are estimates until Gate 9 measures them. Heat made inside a cell cannot be stopped by disconnecting; the gain there is warning time. The prototype is limited to 5 A, and charge and load must not be used at the same time.</div></div><div class="qa"><div class="q">68. Why can a fixed-limit BMS not see an internal short at rest?</div><div class="a">With no current, the pack looks quiet. The heat of a soft short is small, and the temperature rises very slowly. Only an estimate of heat, or of the leak, can see it.</div></div><div class="qa"><div class="q">69. What is future work?</div><div class="a">Build and test the hardware through Gates 0 to 12, fit the heat model on the real cells, choose the clamp part, then move from perfboard to a PCB and test larger packs.</div></div><div class="qa"><div class="q">70. What does the project cost?</div><div class="a">About ₹9,260 for the full parts list at replacement prices, including the four cells.</div></div>
+</section>
+
+<section>
+<h2>14. Glossary</h2>
+<dl class="gloss"><dt>ADC (analog-to-digital converter)</dt><dd>A circuit that turns a voltage into a number.</dd><dt>ADS1115</dt><dd>A 16-bit, 4-channel ADC chip. It measures the four cell taps.</dd><dt>Ah (ampere-hour)</dt><dd>The charge a battery holds. 3.3 Ah gives 3.3 A for one hour.</dd><dt>Ambient temperature</dt><dd>The temperature of the air around the pack.</dd><dt>Balancing</dt><dd>Keeping all cells at the same charge.</dd><dt>BMS (battery management system)</dt><dd>The protection and monitoring circuit of a battery pack.</dd><dt>Buck converter (LM2596)</dt><dd>A circuit that lowers a DC voltage efficiently. Here it makes 5.0 V from the pack.</dd><dt>CC/CV charging</dt><dd>Constant current, then constant voltage: the normal way to charge lithium-ion cells.</dd><dt>Cell</dt><dd>One battery unit. The pack has four.</dd><dt>Core temperature</dt><dd>The temperature deep inside a cell. No sensor can reach it; the model estimates it.</dd><dt>Cross-check</dt><dd>Checking one result with a second, independent method.</dd><dt>Divider (voltage divider)</dt><dd>Two resistors in series that give a known fraction of a voltage.</dd><dt>ERC (electrical rules check)</dt><dd>KiCad&#x27;s automatic check of a circuit drawing for wiring mistakes.</dd><dt>ESP32</dt><dd>A low-cost microcontroller with Wi-Fi. It runs the supervisor program.</dd><dt>ESP-IDF</dt><dd>Espressif&#x27;s official set of tools for writing ESP32 programs.</dd><dt>Firmware</dt><dd>The program that runs inside a microcontroller.</dd><dt>Fixed-limit BMS</dt><dd>A normal BMS that acts only when a reading crosses a fixed value, such as 55 °C.</dd><dt>Forecast</dt><dd>A prediction of a future value, here a cell&#x27;s temperature 1 or 5 minutes ahead.</dd><dt>Fuse</dt><dd>A wire that melts and opens the circuit when the current is too high.</dd><dt>Gate</dt><dd>One stage of the safe build sequence (Gates 0 to 12), each with pass and stop rules.</dd><dt>GNU Octave</dt><dd>A free program that runs MATLAB-style .m files.</dd><dt>GPIO</dt><dd>A general-purpose pin of the microcontroller.</dd><dt>Heat capacity (J/°C)</dt><dd>How much heat raises a body by 1 °C. A cell has about 45 J/°C.</dd><dt>I²C</dt><dd>A two-wire bus (SDA and SCL) that connects chips to the microcontroller.</dd><dt>INA226</dt><dd>A chip that measures current, through the voltage across a shunt, in both directions.</dd><dt>Internal resistance</dt><dd>The small resistance inside a cell. Current through it makes heat.</dd><dt>Internal short</dt><dd>An unwanted current path inside a cell. It drains and heats the cell.</dd><dt>Joule heat (I²R)</dt><dd>Heat made by a current I through a resistance R.</dd><dt>Kalman filter</dt><dd>A method that combines a model&#x27;s prediction and noisy readings to estimate values, including ones not measured.</dd><dt>Kelvin connection</dt><dd>Separate sense wires that measure voltage right at a resistor&#x27;s pads.</dd><dt>KiCad</dt><dd>A free, open-source program for drawing and simulating circuits.</dd><dt>Latch</dt><dd>A trip that stays until a deliberate reset.</dd><dt>Leak current</dt><dd>The current an internal short draws from its own cell.</dd><dt>Li-ion (lithium-ion)</dt><dd>The rechargeable cell type used here.</dd><dt>Low-pass filter</dt><dd>A circuit that passes slow signals and removes fast noise.</dd><dt>MATLAB</dt><dd>A paid program for engineering calculations. Octave runs its files.</dd><dt>Microcontroller</dt><dd>A small computer on one chip that controls a device.</dd><dt>NMC</dt><dd>Nickel manganese cobalt: the chemistry of the cells used.</dd><dt>Normally open (NO)</dt><dd>A relay contact that is open when the relay has no power.</dd><dt>NTC thermistor</dt><dd>A resistor whose resistance falls as its temperature rises.</dd><dt>ngspice</dt><dd>The circuit simulator inside KiCad.</dd><dt>Observer</dt><dd>A model that runs beside the real system and corrects itself with measurements, to estimate hidden values.</dd><dt>OCV (open-circuit voltage)</dt><dd>A cell&#x27;s voltage when no current flows and it has rested.</dd><dt>Perfboard</dt><dd>A board with a grid of holes for building circuits by hand, without a PCB.</dd><dt>Pull-up resistor</dt><dd>A resistor that holds a pin HIGH when nothing drives it.</dd><dt>Relay</dt><dd>A switch moved by an electromagnet, controlled by a small signal.</dd><dt>Risk level</dt><dd>The supervisor&#x27;s verdict: Normal, Watch, Warning or Trip.</dd><dt>RMS error</dt><dd>A kind of average size of errors. Large errors count more.</dd><dt>Scenario</dt><dd>One complete simulated test with its own checks.</dd><dt>Scilab and Xcos</dt><dd>A free engineering program; Xcos is its block-diagram simulator, like Simulink.</dd><dt>Self-discharge</dt><dd>A cell slowly losing charge on its own.</dd><dt>Shunt</dt><dd>A small, precise resistor in the current path. Its voltage shows the current.</dd><dt>Simulation</dt><dd>Calculating how a system behaves, on a computer, instead of building it.</dd><dt>SOC (state of charge)</dt><dd>How full a cell is, in percent.</dd><dt>SPICE</dt><dd>The standard method and program family for simulating circuits.</dd><dt>Surface temperature</dt><dd>The temperature of the cell&#x27;s outside can, where the NTC sits.</dd><dt>Thermal resistance (°C/W)</dt><dd>How many degrees of difference it takes to push 1 W of heat through a path.</dd><dt>Thermal runaway</dt><dd>Heat-making reactions in a cell that speed up as it gets hotter.</dd><dt>Time constant</dt><dd>How fast something settles. After one time constant it has gone about 63 % of the way.</dd><dt>Trip</dt><dd>The supervisor opening the relays because of a fault.</dd><dt>Watchdog</dt><dd>A timer that resets the controller if its program stops running.</dd></dl>
+</section>
+</body></html>

@@ -134,6 +134,11 @@ def kicad_results():
     return json.loads(p.read_text()) if p.exists() else None
 
 
+def xcos_results():
+    p = HERE / "scilab" / "results.json"
+    return json.loads(p.read_text()) if p.exists() else None
+
+
 def octave_results():
     p = HERE / "matlab" / "crosscheck.json"
     return json.loads(p.read_text()) if p.exists() else None
@@ -227,7 +232,7 @@ def build_html(snap):
     count = parts_count([a, b])
     bom, bom_total = bom_rows()
     res = snapshot_results()
-    kres, oc = kicad_results(), octave_results()
+    kres, oc, xr = kicad_results(), octave_results(), xcos_results()
     kr = kres["results"] if kres else None
     built = datetime.date.today().strftime("%d %B %Y").lstrip("0")
     snaps = HERE / "snapshots"
@@ -321,7 +326,7 @@ def build_html(snap):
 <li>Board A: cell-tap sensing</li><li>Board B: ESP32, temperatures, current, relays</li>
 <li>Module pin orders</li><li>Enclosure layout</li><li>Assembly, step by step</li>
 <li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li>
-<li>Circuit and model simulation in KiCad and GNU Octave</li><li>Safety rules</li>
+<li>Circuit and model simulation in KiCad, GNU Octave and Scilab Xcos</li><li>Safety rules</li>
 </ol>
 <h3>1. How to use this guide</h3>
 <ul>
@@ -563,16 +568,18 @@ test with the gate's own pass criteria.</p>
 </section>
 
 <section>
-<h2>16. Circuit and model simulation in KiCad and GNU Octave</h2>
-<p>Three tools check three different parts of the design, and each one is free and open source:</p>
+<h2>16. Circuit and model simulation in KiCad, GNU Octave and Scilab Xcos</h2>
+<p>Four tools check different parts of the design, and each one is free and open source:</p>
 {table(["Tool", "What it checks", "Where"], [
     ["<b>KiCad 10</b> with its simulator, <b>ngspice</b>", "The analog circuits: the cell-tap dividers and filters, the NTC dividers, the current shunt, and the cell's thermal model drawn as an electrical circuit", "<code>kicad/</code>"],
     ["<b>GNU Octave</b> (the same files run in MATLAB)", "The predictive model: the thermal model and the Kalman observer, written a second time from the firmware and compared with it sample by sample", "<code>matlab/</code>"],
+    ["<b>Scilab Xcos</b> (the free tool like Simulink)", "The thermal model and the predictive layer as block diagrams: a fault that a fixed limit misses for half an hour", "<code>scilab/</code>"],
     ["The project's simulator (section 15)", "The complete firmware: every limit, fault and gate scenario, on a simulated pack", "<code>host/</code>"],
 ])}
 <p>The KiCad sheets open in KiCad 10: open the project, then <b>Inspect → Simulator</b> and run the analysis written on the
 sheet. <code>python3 kicad/run_sims.py</code> runs all of them from the command line and checks the results;
-the Octave scripts run with <code>octave --no-gui --eval "crosscheck"</code> in <code>matlab/</code>. KiCad's
+the Octave scripts run with <code>octave --no-gui --eval "crosscheck"</code> in <code>matlab/</code>; the Xcos models
+open in Scilab with a double-click and run with the Start button. KiCad's
 electrical rules check finds no violation on any sheet. All results in this section are simulation results with the
 part values on the sheets; the gates measure the real circuits.</p>
 <h3>Simulation checks</h3>
@@ -601,6 +608,19 @@ firmware's. The limits are 0.01 °C and 0.002 W; the differences come from the r
 {octave_table(oc)}
 {fig("matlab/crosscheck_load_defect.png", "Figure 30. The Octave observer (solid) against the firmware (dashed) on the cell-defect scenario. Top: core temperature and abnormal heat of each cell. Bottom: the differences, in thousandths of a degree and thousandths of a watt.", "chart")}
 {fig("matlab/thermal_step.png", "Figure 31. The step response drawn by Octave, with the steady-state temperatures.", "chart")}
+<h3>16.6 The predictive layer in Scilab Xcos</h3>
+<p>Two block diagrams, in <code>scilab/</code>, open in Scilab 2027.0.0. The values are in each model's context
+(<b>Simulation → Set Context</b>): the firmware's development values. <code>cell_thermal_model.zcos</code> is the
+thermal model of section 9.1 as a state-space block; one hour after 1 W starts in the core, it agrees with ngspice and
+Octave within {xr['model_a_max_diff_c']:.3f} °C.</p>
+{fig("scilab/cell_thermal_model.png", "Figure 32. cell_thermal_model.zcos as Xcos draws it: the heat and the air temperature go into the cell's state-space model; the scope draws the core and surface temperatures.", "chart")}
+<p><code>abnormal_heat_detection.zcos</code> gives a cell a 3 A load, whose Joule heat I²R the supervisor knows, and
+from minute 10 a further 1 W that it does not know: a fault. The observer is the firmware's Kalman filter with the
+gain it settles to, run every 0.2 s on the surface temperature alone. The predictive trip is set at an estimated
+abnormal heat of 0.75 W (1.0 °C/min, section 9.8); the comparison is a fixed 55 °C limit on the surface.</p>
+{fig("scilab/abnormal_heat_detection.png", "Figure 33. abnormal_heat_detection.zcos as Xcos draws it: 1. the heat, 2. the cell, 3. the observer, 4. the two trips, 5. the scope. Tags (Goto and From blocks) carry signals across the page.", "chart")}
+{fig("figures/xcos-temperatures.svg", f"Figure 34. The cell's temperatures in the Xcos model. The predictive trip comes {xr['predictive_trip_s'] - xr['fault_start_s']:.0f} s after the fault starts, with the surface at {xr['surface_at_predictive_c']:.1f} °C; the fixed limit trips {(xr['fixed_trip_s'] - xr['fault_start_s']) / 60:.0f} minutes after it starts." if xr else "Figure 34.", "chart")}
+{fig("figures/xcos-abnormal-heat.svg", "Figure 35. The abnormal heat: the true 1 W fault and the observer's estimate, which reaches the 0.75 W trip level in about two minutes and settles at 1.00 W. Before the fault it stays at zero. The model has no sensor noise, and the firmware also waits 10 s before it trips.", "chart")}
 </section>
 
 <section>
