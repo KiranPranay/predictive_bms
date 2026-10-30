@@ -155,12 +155,15 @@ jobs:
       - name: "Test: Scilab and Xcos for Windows"
         run: |
           Start-Process installers/scilab.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\Scilab' -Wait
-          $scilex = "C:\Scilab\bin\Scilex.exe"
-          & $scilex -nw -nb -quit -f .github/scripts/scilab_smoke.sce
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # Scilab 2027 takes no -nw option itself: its launcher turns "scilab -nw" into
+          # WScilex-cli.exe, the console version with Xcos, which is called directly here.
+          $cli = "C:\Scilab\bin\WScilex-cli.exe"
+          if (-not (Test-Path $cli)) { Get-ChildItem C:\Scilab\bin | Format-Table Name; throw "WScilex-cli.exe is not installed" }
+          & $cli -nb -quit -f .github/scripts/scilab_smoke.sce
+          if ($LASTEXITCODE -ne 0) { throw "the Xcos smoke test failed ($LASTEXITCODE)" }
           if (Test-Path scilab/check_models.sce) {
-            & $scilex -nw -nb -quit -f scilab/check_models.sce
-            if ($LASTEXITCODE -ne 0) { exit 1 }
+            & $cli -nb -quit -f scilab/check_models.sce
+            if ($LASTEXITCODE -ne 0) { throw "the Xcos models failed their checks ($LASTEXITCODE)" }
           }
 
       - name: Attach the package to the release

@@ -1,6 +1,6 @@
 // Checks that Scilab for Windows can write, read and simulate an Xcos diagram without a
 // window: a constant into a "to workspace" block, run for 10 s.
-//     Scilex.exe -nw -nb -quit -f .github/scripts/scilab_smoke.sce
+//     WScilex-cli.exe -nb -quit -f .github/scripts/scilab_smoke.sce
 
 loadXcosLibs();
 loadScicos();
