@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Presentation guide</title><style>
+@page { size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: "Predictive BMS · START HERE"; font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; }
+  @bottom-right { content: "page " counter(page) " of " counter(pages); font: 8.5pt 'Liberation Sans', Arial, sans-serif; color: #888; } }
+@page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+body { font: 10.8pt/1.5 'Liberation Sans', Arial, Helvetica, sans-serif; color: #1d1d1b; margin: 0; }
+h1 { font-size: 20pt; margin: 0 0 4mm; }
+h2 { font-size: 15pt; margin: 0 0 3mm; padding-bottom: 1.5mm; border-bottom: 1.5px solid #2a78d6; break-after: avoid; }
+h3 { font-size: 12pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.6mm; }
+ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+li { margin-bottom: 1.2mm; }
+section { break-before: page; }
+section.flow { break-before: auto; margin-top: 6mm; }
+figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; max-height: 120mm; border: 1px solid #ddd; }
+figure.small img { max-height: 60mm; }
+figure.mid img { max-height: 88mm; }
+figure.tiny img { max-height: 46mm; }
+figure.chart img { width: 70%; border: none; }
+figcaption { font-size: 9pt; color: #4f4d48; margin-top: 1.5mm; text-align: left; }
+table { border-collapse: collapse; width: 100%; font-size: 9.4pt; margin: 2mm 0 4mm; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: #eef4fb; text-align: left; padding: 1.4mm 1.8mm; border-bottom: 1px solid #9db8dc; }
+td { padding: 1.2mm 1.8mm; border-bottom: 1px solid #e3e0d6; vertical-align: top; }
+table.plan td:first-child { width: 17%; white-space: nowrap; }
+table.trouble td:first-child { width: 36%; }
+.say { background: #eef7ee; border-left: 3px solid #1baf7a; padding: 2mm 3mm; margin: 2mm 0 3.5mm; break-inside: avoid; }
+.note { background: #fff7e6; border-left: 3px solid #e07b00; padding: 2mm 3mm; margin: 2mm 0 4mm; font-size: 10pt; break-inside: avoid; }
+.safety { background: #fdeceb; border-left: 3px solid #d03b3b; padding: 2mm 3mm; margin: 2mm 0 4mm; break-inside: avoid; }
+ol.steps > li { margin-bottom: 1.8mm; }
+.cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; }
+.cover .top { margin-top: 28mm; }
+.cover .kicker { font-size: 13pt; color: #2a78d6; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 4mm; }
+.cover .title { font-size: 27pt; font-weight: bold; line-height: 1.15; margin-bottom: 6mm; }
+.cover .sub { font-size: 14pt; color: #4f4d48; margin-bottom: 12mm; }
+.cover .meta { font-size: 11pt; line-height: 1.7; }
+.cover .foot { font-size: 9.5pt; color: #4f4d48; border-top: 1px solid #ccc; padding-top: 3mm; }
+.toc { columns: 2; font-size: 11pt; }
+code, .key { font-family: 'Liberation Mono', monospace; font-size: 9.6pt; background: #f3f2ee; padding: 0 1mm; }
+.qa { break-inside: avoid; margin-bottom: 3mm; }
+.qa .q { font-weight: bold; }
+.qa .a { margin-left: 6mm; }
+dl.gloss dt { font-weight: bold; margin-top: 2mm; break-after: avoid; }
+dl.gloss dd { margin: 0 0 1mm 6mm; }
+.fill { background: #fff3c4; padding: 0 1mm; }
+</style></head><body>
+<div class="cover">
+  <div class="top">
+    <div class="kicker">START HERE</div>
+    <div class="title">How to present the Predictive BMS on your Windows PC</div>
+    <div class="sub">Install, open, click, and what to say: the demonstration, the KiCad circuits, the Octave model
+    check and the Scilab Xcos models</div>
+    <div class="meta">
+      Predictive Thermal Battery Management System for Li-ion Battery Packs<br>
+      Muskan Sulathana · Guide: Dr. M. Rupesh
+    </div>
+  </div>
+  <div class="foot">You do not need to write or change any program. Every part opens with a double-click or a menu,
+  and runs with one button. Read this guide once with the programs open, and practise the 15-minute plan in
+  section 8 two times before the review.</div>
+</div>
+
+<section>
+<h2>Contents</h2>
+<ol class="toc">
+<li>What to install</li><li>Get the project folder ready</li><li>Part 1: the demonstration dashboard</li>
+<li>Part 2: the circuits in KiCad</li><li>Part 3: the model check in GNU Octave</li>
+<li>Part 4: the block diagrams in Scilab Xcos</li><li>Part 5: the Build Guide</li><li>The 15-minute presentation</li>
+<li>The day before: checklist</li><li>If something goes wrong</li>
+</ol>
+
+<h3>The project in two sentences</h3>
+<p>This project protects a battery pack of four lithium-ion cells. An ESP32 controller measures every cell five times a
+second, uses a heat model to find heat that should not be there, and disconnects the pack early, long before the cells
+reach a fixed temperature limit.</p>
+<p>The hardware is not built yet. Everything you show is a <b>simulation</b>: on the computer, with the real circuit
+values and the real controller program. Always say "in the simulation" when you give a result.</p>
+</section>
+
+<section>
+<h2>1. What to install</h2>
+<p>All the programs are free. Install them the day before, when you have good internet. They are large downloads.
+During each installation, keep the default choices and click <b>Next</b> until it finishes.</p>
+<table class=""><thead><tr><th>Program</th><th>Where to get it</th><th>What it is for</th></tr></thead><tbody><tr><td><b>KiCad 10</b></td><td><b>kicad.org</b> → Download → Windows. Take the newest 10.0 version.</td><td>The circuit diagrams, and their simulation (KiCad has a circuit simulator inside, called ngspice).</td></tr><tr><td><b>GNU Octave 10.3.0</b></td><td><b>octave.org</b> → Download → Windows. Take the installer for version 10.3.0 (its file name ends with <span class='key'>-w64-installer.exe</span>).</td><td>The heat model and its estimator, written as MATLAB-style files. Octave is the free program that runs MATLAB files.</td></tr><tr><td><b>Scilab 2026.0.1</b></td><td><b>scilab.org</b> → Download → Windows 64-bit installer for 2026.0.1.</td><td>Xcos, the block-diagram tool inside Scilab. It is the free tool like Simulink.</td></tr><tr><td>Nothing</td><td>—</td><td>The demonstration dashboard. It runs from the project folder and opens in your normal web browser (Edge or Chrome).</td></tr></tbody></table>
+<div class="note"><b>First start of KiCad.</b> The first time KiCad opens, it may ask how to set up the symbol and footprint libraries. Choose the first, default option (<i>Copy default global ... library table</i>) and click OK. This happens only once.</div>
+</section>
+
+<section>
+<h2>2. Get the project folder ready</h2>
+<p>You get the project as one zip file, <span class="key">PredictiveBMS-Windows.zip</span>. If you need a fresh copy,
+it is on the project's GitHub page, <b>github.com/KiranPranay/predictive_bms</b>, under <b>Releases</b>.</p>
+<ol class="steps"><li>Right-click the zip file → <b>Properties</b>. At the bottom, tick <b>Unblock</b> (if you see it) → <b>OK</b>. This stops Windows from blocking the demonstration later.</li><li>Right-click the zip file → <b>Extract All…</b> Choose a short place, for example <span class='key'>C:\PredictiveBMS</span> or your Desktop. Do not run anything from inside the zip: extract it first.</li><li>Open the extracted folder <b>PredictiveBMS</b>. You see:</li></ol>
+<table class=""><thead><tr><th>In the folder</th><th>What it is</th></tr></thead><tbody><tr><td><b>START HERE.pdf</b></td><td>This guide.</td></tr><tr><td><b>1 Demo - double-click.bat</b></td><td>Starts the demonstration dashboard (Part 1).</td></tr><tr><td><b>2 KiCad circuits</b></td><td>Four KiCad projects: cell-taps, ntc-divider, current-sense, thermal-model (Part 2).</td></tr><tr><td><b>3 Octave model check</b></td><td>The Octave files, such as thermal_step.m and crosscheck.m, and the simulator program bms_sim.exe (Part 3).</td></tr><tr><td><b>4 Scilab Xcos models</b></td><td>cell_thermal_model.zcos and abnormal_heat_detection.zcos (Part 4).</td></tr><tr><td><b>Documents</b></td><td>Build-Guide.pdf, Viva-Notes.pdf and this guide.</td></tr><tr><td><b>program</b></td><td>Files the demonstration needs. Do not move or change them.</td></tr></tbody></table>
+<div class="note">If Windows shows a blue box, <b>Windows protected your PC</b>, when you start something from this folder: click <b>More info</b>, then <b>Run anyway</b>. The files are the project's own programs. Unblocking the zip in step 1 avoids most of these boxes.</div>
+</section>
+
+<section>
+<h2>3. Part 1: the demonstration dashboard</h2>
+<p>The dashboard shows the whole system working on a <b>simulated pack</b>: four cells, their heat, the hardware BMS,
+the sensors, and the same controller program that will run on the ESP32. A second copy of the pack runs beside it,
+protected only by fixed limits, like a normal BMS. So every fault shows how much earlier this project acts.</p>
+<h3>Start it</h3>
+<ol class="steps"><li>Double-click <b>1 Demo - double-click.bat</b>. A black window opens. It says that the demo is running. <b>Keep this black window open</b> for the whole presentation. Closing it stops the demo.</li><li>Your browser opens the dashboard by itself. If it does not, open Edge or Chrome and type <span class='key'>http://127.0.0.1:8080/</span> in the address bar.</li><li>Wait a few seconds until the numbers on the page start to change.</li></ol>
+<h3>What is on the page</h3>
+<ul>
+<li><b>Guided demonstrations</b>: nine buttons. Each button starts one story on a fresh pack. A text box tells what
+is happening, step by step. It has <b>Pause</b>, <b>Restart</b> and <b>Stop</b> buttons.</li>
+<li><b>Predictive layer against a fixed-limit BMS</b>: the comparison of the two packs.</li>
+<li><b>Cell cards</b>: for each cell, its voltage, temperature, estimated core temperature, abnormal heat (in watts)
+and its risk level.</li>
+<li><b>System</b>: a live drawing of the pack, the relays and the sensors.</li>
+<li><b>Charts</b>: cell temperatures, abnormal heat, and each 5-minute forecast drawn against the real reading.</li>
+<li><b>Verification</b>: all 30 test scenarios with their checks, at the bottom.</li>
+</ul>
+<figure class="small"><img src="../build-guide/snapshots/defect-story.png"><figcaption>The dashboard during a guided demonstration (here: a cell that overheats under load).</figcaption></figure>
+</section>
+
+<section>
+<h3>Show the demonstrations in this order</h3>
+<p>Click one button, let it run to the end, read the result box, then click the next. Times are approximate and
+change by a few seconds between runs.</p>
+<table class=""><thead><tr><th>Order</th><th>Button</th><th>What happens (about how long)</th><th>What it proves</th></tr></thead><tbody><tr><td>1</td><td><b>Normal use</b></td><td>A 2 A load, a rest, then charging at 1.5 A (about 2 minutes). The level stays <b>Normal</b>. The 5-minute forecasts land on the real readings.</td><td>No false alarms. The model knows how a healthy cell heats.</td></tr><tr><td>2</td><td><b>Heat with no current</b></td><td>1 W of heat starts inside cell 2 while no current flows (under 1 minute). The supervisor trips about 1 minute later, with the cell near 26 °C. The fixed-limit BMS does nothing.</td><td>It finds heat that the current cannot explain, which is how an internal fault starts.</td></tr><tr><td>3</td><td><b>A cell that overheats under load</b></td><td>Cell 2 gets a defect under a 3 A load (under 1 minute). This project trips about 2 minutes after the fault, near 28 °C, and the cell cools. The fixed-limit BMS trips about 7 minutes after the fault, at 55 °C.</td><td>The main result: about 5 minutes earlier and about 27 °C cooler.</td></tr><tr><td>4</td><td><b>Soft internal short (Gate 11)</b></td><td>A 47 Ω resistor across cell 2 at rest, like a small internal short (about 1 minute). The leak estimate finds about 73 mA, close to the 79 mA really drawn. Heat and leak agree. Level: <b>Warning</b>.</td><td>Two independent kinds of evidence, electrical and thermal, point to the same cell.</td></tr><tr><td>5</td><td><b>Thermal runaway onset</b></td><td>Heat inside cell 3 that grows as the cell warms (about 1 minute). This project trips about 8 minutes after it starts, near 29 °C. The fixed-limit BMS trips almost 4 minutes later, at 55 °C.</td><td>An early warning. Disconnecting cannot stop heat made inside a cell, so the gain is warning time.</td></tr></tbody></table>
+<div class="say"><b>Say:</b> Each demonstration runs on the same controller program that will run on the ESP32. The grey dashed line is the second pack, which has only fixed limits. Look how much earlier this project acts, and how much cooler the cell is.</div>
+<h3>What to point at</h3>
+<ul>
+<li><b>Abnormal heat chart</b>: the line of the faulty cell rises above the others. 0.5 °C/min is Warning and 1.0 °C/min
+is Trip.</li>
+<li><b>Comparison card</b>: the trip time and the temperature of both packs, side by side.</li>
+<li><b>Forecast chart</b>: for a healthy cell, the forecast made 5 minutes earlier lands on the real reading.</li>
+<li><b>Latched trip</b>: after a trip, both relays stay open until a manual reset is allowed.</li>
+</ul>
+<p>To finish, scroll to <b>Verification</b> and click <b>Run again</b>: <b>30 of 30 pass</b>.</p>
+<div class="say"><b>Say:</b> These 30 scenarios are the tests of the build gates, done in simulation before any real cell is connected. All 30 pass.</div>
+<div class="note">To stop the demo, close the black window. To start again, double-click the .bat file again.</div>
+</section>
+
+<section>
+<h2>4. Part 2: the circuits in KiCad</h2>
+<p>KiCad is the circuit design program used in industry. Here it holds four small circuits, each with its own
+simulation. The part values are the ones the prototype uses. Each circuit is one folder in <b>2 KiCad circuits</b>.</p>
+<h3>How to open and run any of the four</h3>
+<ol class="steps"><li>In the folder, open one circuit folder, for example <b>thermal-model</b>. Double-click the file ending in <span class='key'>.kicad_pro</span>. KiCad opens.</li><li>In the KiCad window, double-click the file ending in <span class='key'>.kicad_sch</span> (or click <b>Schematic Editor</b>). The circuit appears.</li><li>In the Schematic Editor menu, click <b>Inspect → Simulator</b>. The simulator window opens.</li><li>Click <b>Run</b> (the green triangle ▶). If a window asks for the analysis, it is already filled in from the blue command written on the sheet (for example <span class='key'>.tran 1 3610</span>): click <b>OK</b>.</li><li>Click <b>Add Signals</b>, tick the signals named below, and click <b>OK</b>. The graph appears.</li></ol>
+<div class="say"><b>Say:</b> This is the real circuit with the real part values, drawn in KiCad. KiCad's built-in simulator, ngspice, calculates it. KiCad's electrical rules check finds no errors.</div>
+
+<h3>Circuit 1: cell-taps (board A)</h3>
+<figure class="small"><img src="../build-guide/figures/kicad-cell-taps.svg"><figcaption>The four cell-tap channels as KiCad draws them.</figcaption></figure>
+<ul>
+<li><b>Run:</b> this sheet uses <span class="key">.op</span>, the "operating point": the steady voltages.</li>
+<li><b>Read:</b> the voltages of <b>ADC1, ADC2, ADC3, ADC4</b> in the results list: about 0.59, 1.19, 1.78, 2.38 V.</li>
+<li><b>Point at:</b> all four are below 3.0 V, the safe limit for the ADS1115 input (the Gate 1 stop rule).</li>
+</ul>
+<div class="say"><b>Say:</b> Each cell tap goes through a 330 kΩ and 56 kΩ divider, so 16.8 V becomes about 2.4 V, which the ADC can read safely. The 10 kΩ and 100 nF filter removes noise.</div>
+</section>
+
+<section>
+<h3>Circuit 2: ntc-divider (board B)</h3>
+<figure class="tiny"><img src="../build-guide/figures/kicad-ntc-divider.svg"><figcaption>One NTC temperature divider.</figcaption></figure>
+<ul>
+<li><b>Run:</b> this sheet sweeps the temperature of the NTC from −20 to 100 °C (<span class="key">.dc TEMP -20 100 1</span>).</li>
+<li><b>Add signal:</b> <b>V(NTC_ADC)</b>. The graph shows the ADC voltage falling as the temperature rises.</li>
+<li><b>Point at:</b> 1.65 V at 25 °C, about 1.00 V at 45 °C (the charge limit) and
+about 0.76 V at 55 °C (the discharge limit).</li>
+</ul>
+<div class="say"><b>Say:</b> An NTC's resistance falls as it gets hotter. With a 10 kΩ resistor above it, the voltage at the ESP32 tells the temperature. It stays in the ESP32's accurate range from about 3 °C to above 100 °C.</div>
+
+<h3>Circuit 3: current-sense</h3>
+<figure class="tiny"><img src="../build-guide/figures/kicad-current-sense.svg"><figcaption>The 5 mΩ shunt and the INA226 inputs.</figcaption></figure>
+<ul>
+<li><b>Run:</b> this sheet sweeps the pack current from −5 A (charging) to +5 A (discharging) (<span class="key">.dc I1 -5 5 0.1</span>).</li>
+<li><b>Add signal:</b> the voltage across the shunt, <b>V(/SENSE_P) − V(/SENSE_N)</b>. In the simulator, use
+the <b>user-defined signal</b> box (in the signals menu) and type <span class="key">V(/SENSE_P)-V(/SENSE_N)</span>.
+If you cannot find it, add <b>V(/SENSE_P)</b> and <b>V(/SENSE_N)</b> and explain the small gap between them.</li>
+<li><b>Point at:</b> 25.0 mV at 5 A. The INA226 can read up to about 81.9 mV,
+so there is a large margin. Discharge reads positive.</li>
+</ul>
+<div class="say"><b>Say:</b> A 5 milliohm resistor in the pack's path makes a small voltage proportional to the current. The INA226 chip reads it in both directions, charge and discharge.</div>
+</section>
+
+<section>
+<h3>Circuit 4: thermal-model</h3>
+<figure class="small"><img src="../build-guide/figures/kicad-thermal-model.svg"><figcaption>The heat model of one cell, drawn as an electrical circuit.</figcaption></figure>
+<ul>
+<li><b>Run:</b> this sheet simulates one hour after 1 W of heat starts in the cell's core (<span class="key">.tran 1 3610</span>).</li>
+<li><b>Add signals:</b> <b>V(/T_CORE)</b> and <b>V(/T_SURF)</b>. Here 1 volt means 1 °C.</li>
+<li><b>Point at:</b> both start at 25 °C. After one hour the core is at about 54.5 °C and still rising slowly. It
+would settle at 57 °C.</li>
+</ul>
+<div class="say"><b>Say:</b> Heat flows like current. A heat capacity behaves like a capacitor, and a thermal resistance like a resistor. So the cell's heat model is a simple RC circuit. 1 volt stands for 1 °C and 1 ampere for 1 watt. The ESP32 runs this same model five times a second.</div>
+<div class="note"><b>Tip.</b> On the projector, zoom the graph with the mouse wheel, or use the View menu to zoom.</div>
+</section>
+
+<section>
+<h2>5. Part 3: the model check in GNU Octave</h2>
+<p>GNU Octave runs MATLAB-style programs (files ending in <span class="key">.m</span>). We use it to check the heat
+model and the estimator a second, independent way. The same files also run in MATLAB.</p>
+<h3>Open Octave in the right folder</h3>
+<ol class="steps"><li>Start <b>GNU Octave (GUI)</b> from the Start menu.</li><li>Find the <b>File Browser</b> panel (on the left). Use its folder box at the top, or the <b>Current Directory</b> box above the Command Window, to go to the folder <b>3 Octave model check</b>. The panel now lists <span class='key'>thermal_step.m</span>, <span class='key'>crosscheck.m</span> and the other files.</li></ol>
+<h3>Run 1: thermal_step (a few seconds)</h3>
+<ol class="steps"><li>Double-click <b>thermal_step.m</b>. It opens in the Editor.</li><li>Press <b>F5</b> (or click the Run button ▶ in the Editor). Another way: click in the Command Window, type <span class='key'>thermal_step</span> and press Enter.</li><li>A figure opens: the core (orange) and surface (blue) temperatures over one hour after 1 W of heat. The Command Window prints the temperatures at 1, 5, 20 and 60 minutes, and the two time constants, 8.4 s and 1422 s.</li></ol>
+<div class="say"><b>Say:</b> This is the same heat model as in KiCad, solved by a different method. KiCad and Octave agree to within 0.0002 °C.</div>
+<h3>Run 2: crosscheck (one scenario in about a minute; all four take a few minutes)</h3>
+<ol class="steps"><li>In the Command Window type <span class='key'>crosscheck({{'load_defect'}})</span> and press Enter: one scenario. (<span class='key'>crosscheck</span> alone runs all four; run that the day before.)</li><li>Octave starts <span class='key'>bms_sim.exe</span>, the simulator, which runs the real controller program and writes a log. Then Octave's own copy of the estimator reads the same log and calculates the same numbers.</li><li>A figure opens with four panels. Top: the core temperature and the abnormal heat of each cell; the solid (Octave) and dashed (controller) lines lie on top of each other. Bottom: the difference between them: only a few thousandths of a degree and of a watt. (The same figure is in the Build Guide, section 16.5.)</li></ol>
+<div class="say"><b>Say:</b> The controller's estimator was written again in Octave and given the same sensor data. Both give the same core temperature and abnormal heat, to a few thousandths. This shows the controller program does what the model says.</div>
+</section>
+
+<section>
+<h2>6. Part 4: the block diagrams in Scilab Xcos</h2>
+<p>Xcos is the block-diagram simulator inside Scilab, the free tool like Simulink. Each model is a drawing of
+blocks joined by arrows. A scope block draws the result.</p>
+<h3>How to run a model</h3>
+<ol class="steps"><li>Open the folder <b>4 Scilab Xcos models</b> and double-click the model file (<span class='key'>.zcos</span>). Scilab starts and Xcos opens the diagram. (If it does not: start Scilab, click <b>Applications → Xcos</b>, then <b>File → Open</b> and choose the file.)</li><li>Click <b>Start</b>, the black triangle ▶ in the Xcos toolbar.</li><li>Wait until the simulation ends. The scope windows open with the graphs.</li></ol>
+<h3>Model 1: cell_thermal_model.zcos</h3>
+<p>The heat model of one cell as blocks: 1 W of heat starts in the core at 10 s, the air is at 25 °C, and the
+simulation runs for one hour. The scope shows the core and the surface temperatures. It is the same model as the
+KiCad thermal-model sheet and Octave's thermal_step.</p>
+<p><b>Point at:</b> <span class="fill">[[XCOS-A]]</span></p>
+<div class="say"><b>Say:</b> Here the same heat model is built from blocks, as engineers do in Simulink. The heat goes in on the left, the model is in the middle, and the scope shows the temperatures.</div>
+<h3>Model 2: abnormal_heat_detection.zcos</h3>
+<p>One cell carries 3 A. Its normal Joule heat (I²R) is known. At 10 minutes, 1 W of extra, unknown heat starts:
+the "abnormal" heat. An observer block, a fixed-gain version of the controller's Kalman filter, watches only the
+surface temperature and estimates the abnormal heat. Two trips are compared:</p>
+<ul>
+<li><b>Predictive trip</b>: when the estimated abnormal heat reaches 0.75 W (about 1 °C per minute, the
+architecture's trip level);</li>
+<li><b>Fixed-limit trip</b>: when the surface temperature reaches 55 °C.</li>
+</ul>
+<p>The scopes show the temperatures, the estimated against the true abnormal heat, and the two trip signals.</p>
+<p><b>Point at:</b> <span class="fill">[[XCOS-B]]</span></p>
+<div class="say"><b>Say:</b> The observer sees only the surface temperature, like the real NTC sensor. It works out how much heat is not explained by the current. The predictive trip comes long before the fixed 55 °C limit.</div>
+</section>
+
+<section>
+<h2>7. Part 5: the Build Guide</h2>
+<p>Open <b>Documents → Build-Guide.pdf</b>. It is the full construction document. Show these sections:</p>
+<table class=""><thead><tr><th>Section</th><th>What to show</th><th>What to say</th></tr></thead><tbody><tr><td>2. The system at a glance</td><td>The architecture drawing and the table of the pack</td><td>Two layers protect the pack: a hardware BMS, and the ESP32 supervisor with two relays.</td></tr><tr><td>3. Single-line diagram</td><td>The power path from the cells to the load and the charger</td><td>The fuse is at the pack's positive end, then the current shunt, then the two relays.</td></tr><tr><td>4. Circuit diagrams</td><td>Cell taps, NTCs, current, control</td><td>Every value comes from the architecture document.</td></tr><tr><td>6. Components</td><td>The parts list and the total cost</td><td>The full parts list costs about ₹9,260.</td></tr><tr><td>8 and 9. Board A and board B</td><td>The perfboards hole by hole</td><td>The board drawings are checked by a program: every connection is made and nothing is shorted.</td></tr><tr><td>12 and 13. Assembly and checks</td><td>The step-by-step assembly and the meter checks</td><td>Each board is checked with a meter before any power.</td></tr><tr><td>14. Bring-up</td><td>The gate table</td><td>The build goes through Gates 0 to 12. No lithium cell is connected before Gate 3.</td></tr><tr><td>15 and 16. The simulation</td><td>The demonstration pictures, the KiCad and Octave results</td><td>All results so far are simulation results; the gates measure the real circuits.</td></tr></tbody></table>
+</section>
+
+<section>
+<h2>8. The 15-minute presentation</h2>
+<p>Before you start: the demo is running (black window open), KiCad has the thermal-model sheet open with its
+graph ready, Octave shows the thermal_step figure, Xcos has abnormal_heat_detection open, and the Build Guide is
+open. Then you only switch windows (<b>Alt + Tab</b>).</p>
+<table class="plan"><thead><tr><th>Time</th><th>Show</th><th>Say</th></tr></thead><tbody><tr><td>0:00–1:00</td><td>Build Guide cover</td><td>The title, your name, your guide. "This project predicts heating faults in a lithium-ion pack before a fixed limit is reached."</td></tr><tr><td>1:00–2:30</td><td>Build Guide section 2 (architecture)</td><td>The problem: lithium-ion cells can overheat, and a fixed temperature limit acts late. The two layers: the hardware BMS always protects; the ESP32 adds the predictive layer and two relays.</td></tr><tr><td>2:30–3:30</td><td>Build Guide sections 3 and 4</td><td>The power path and the sensors: four cell voltages (ADS1115), pack current (INA226 with a 5 mΩ shunt), five temperatures (NTCs).</td></tr><tr><td>3:30–4:30</td><td>Viva Notes, the heat model (or Build Guide 16.4)</td><td>The heat model: core and surface. The Kalman filter estimates the core temperature and the abnormal heat in watts.</td></tr><tr><td>4:30–9:30</td><td>The dashboard: Normal use, Heat with no current, A cell that overheats under load, Soft internal short</td><td>One sentence per demonstration (section 3). Point at the comparison card: about 5 minutes earlier and about 27 °C cooler.</td></tr><tr><td>9:30–10:30</td><td>The dashboard: Verification</td><td>30 of 30 test scenarios pass.</td></tr><tr><td>10:30–12:00</td><td>KiCad: thermal-model graph, then cell-taps values</td><td>The circuit values are checked in KiCad's simulator. The heat model is an RC circuit.</td></tr><tr><td>12:00–13:00</td><td>Octave: the crosscheck figure</td><td>The estimator, written again in Octave, gives the same numbers as the controller program.</td></tr><tr><td>13:00–14:00</td><td>Xcos: abnormal_heat_detection</td><td>The block diagram: the predictive trip comes long before the fixed limit.</td></tr><tr><td>14:00–15:00</td><td>Build Guide section 14 (bring-up)</td><td>What is next: build the hardware gate by gate. Safety rules. "Thank you. I am happy to take questions."</td></tr></tbody></table>
+<div class="note">If time is short, skip the soft-short demonstration and the Xcos part. If there is extra time, show the Thermal runaway onset demonstration.</div>
+</section>
+
+<section>
+<h2>9. The day before: checklist</h2>
+<ul>
+<li>☐ KiCad 10, GNU Octave 10.3.0 and Scilab 2026.0.1 are installed. Each one has been opened once (KiCad's library
+question is answered).</li>
+<li>☐ The zip is unblocked and extracted to a short folder, for example <span class="key">C:\PredictiveBMS</span> (not
+inside OneDrive).</li>
+<li>☐ The demo starts, and all five demonstrations of section 3 run to the end.</li>
+<li>☐ Each of the four KiCad circuits runs, and you know which signals to add.</li>
+<li>☐ In Octave, <span class="key">thermal_step</span> and the full <span class="key">crosscheck</span> have run once.</li>
+<li>☐ Both Xcos models run and show their scopes.</li>
+<li>☐ You have read the Viva Notes, and practised the 15-minute plan two times with a timer.</li>
+<li>☐ Laptop charged; charger and HDMI adapter in the bag; the display set to <b>Duplicate</b> (Windows key + P).</li>
+<li>☐ Sleep turned off (Settings → System → Power) and notifications off (Focus assist / Do not disturb).</li>
+<li>☐ A copy of the whole PredictiveBMS folder on a pen drive.</li>
+</ul>
+<p>Nothing in the project needs the internet during the presentation.</p>
+</section>
+
+<section>
+<h2>10. If something goes wrong</h2>
+<table class="trouble"><thead><tr><th>Problem</th><th>What to do</th></tr></thead><tbody><tr><td>Blue box: <b>Windows protected your PC</b></td><td>Click <b>More info</b>, then <b>Run anyway</b>. Next time, unblock the zip before extracting (section 2).</td></tr><tr><td>The black window opens and closes at once, or says a file is missing</td><td>Extract the whole zip first; do not run it from inside the zip. Keep the folders as they are. Antivirus may have removed a file: extract again and allow the file.</td></tr><tr><td>The browser does not open</td><td>Open Edge or Chrome yourself and type <span class='key'>http://127.0.0.1:8080/</span>.</td></tr><tr><td>The black window shows an error about port 8080, or the page does not load</td><td>Another demo is already running. Close every black window, wait 5 seconds, and start again. If it still fails, restart the PC.</td></tr><tr><td>The page is open but nothing changes</td><td>Check that the black window is still open. Press <b>F5</b> in the browser to reload.</td></tr><tr><td>A demonstration seems stuck</td><td>Click <b>Stop</b>, then click the demonstration button again.</td></tr><tr><td>KiCad asks about the symbol or footprint library table</td><td>Choose the first, default option (Copy default global ... table) and click OK.</td></tr><tr><td>The KiCad graph is empty after Run</td><td>No signal is added yet: click <b>Add Signals</b> and tick the signals named in section 4.</td></tr><tr><td>KiCad asks for the simulation command</td><td>Type the blue command written on the sheet (for example <span class='key'>.tran 1 3610</span>) and click OK.</td></tr><tr><td>Octave says <span class='key'>'thermal_step' undefined</span></td><td>Octave is in the wrong folder. Change the Current Directory to <b>3 Octave model check</b>.</td></tr><tr><td>Octave's crosscheck cannot find the simulator (bms_sim.exe)</td><td>bms_sim.exe must be in the same folder as crosscheck.m. Extract the zip again; if antivirus removed it, allow it.</td></tr><tr><td>Octave's crosscheck is slow</td><td>Run only <span class='key'>crosscheck({'load_defect'})</span>, or show its figure in the Build Guide, section 16.5.</td></tr><tr><td>The .zcos file opens in another program</td><td>Start Scilab, click <b>Applications → Xcos</b>, then <b>File → Open</b>.</td></tr><tr><td>The Xcos scope window does not appear</td><td>Wait until the simulation ends. Look for the scope behind the Xcos window (use the taskbar). Read the Scilab console for a message, then click Start again.</td></tr><tr><td>Text is too small on the projector</td><td>In the browser press <b>Ctrl</b> and <b>+</b>. In KiCad and Xcos use the mouse wheel to zoom.</td></tr></tbody></table>
+<p>If one part fails and cannot be fixed quickly, show its picture in the Build Guide (section 15 or 16) and move on.
+Say: "This is the result from the same simulation."</p>
+</section>
+</body></html>
