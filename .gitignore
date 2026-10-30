@@ -4,6 +4,7 @@
 
 # Builds
 build/
+dist/
 firmware/build/
 firmware/build-*/
 firmware/sdkconfig

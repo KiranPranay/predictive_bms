@@ -16,8 +16,9 @@ function results = crosscheck(scenarios, sim)
 %   interpolation, starts from the firmware's state and skips the 60 s warm-up; the agreement
 %   is then only as close as the missing samples allow.
 %
-%   Results: build/matlab/crosscheck.json. Figures, and a copy of the results for the build
-%   guide: docs/build-guide/matlab/.
+%   Results: crosscheck.json and the logs; the figures and a copy of crosscheck.json beside
+%   them (see result_folders). The figures show on the screen when it runs in the Octave or
+%   MATLAB window. In the Windows package the simulator, bms_sim.exe, is in this folder.
 
 if nargin < 1 || isempty(scenarios)
   scenarios = {'discharge_steps', 'heat_no_current', 'load_defect', 'soft_short'};
@@ -26,11 +27,7 @@ root = fileparts(fileparts(mfilename('fullpath')));
 if nargin < 2
   sim = find_simulator(root);
 end
-out_dir = fullfile(root, 'build', 'matlab');
-fig_dir = fullfile(root, 'docs', 'build-guide', 'matlab');
-if ~exist(out_dir, 'dir')
-  mkdir(out_dir);
-end
+[out_dir, fig_dir] = result_folders();
 p = bms_params('simulator');
 
 % Agreement limits for the exact replay. The CSV keeps 3 decimals of a temperature and 4 of a
@@ -101,15 +98,21 @@ end
 % -------------------------------------------------------------------------------------------
 
 function sim = find_simulator(root)
-% The PC build of the simulator: cmake -S host -B build/host && cmake --build build/host
-names = {fullfile('build', 'host', 'bms_sim'), fullfile('build', 'host', 'bms_sim.exe'), ...
-         fullfile('build', 'host', 'Release', 'bms_sim.exe'), ...
-         fullfile('build', 'host', 'Debug', 'bms_sim.exe')};
-for i = 1:numel(names)
-  sim = fullfile(root, names{i});
+% The simulator beside this file (the Windows package), or the PC build in the repository:
+% cmake -S host -B build/host && cmake --build build/host
+here = fileparts(mfilename('fullpath'));
+paths = {fullfile(here, 'bms_sim.exe'), fullfile(here, 'bms_sim'), ...
+         fullfile(root, 'build', 'host', 'bms_sim'), fullfile(root, 'build', 'host', 'bms_sim.exe'), ...
+         fullfile(root, 'build', 'host', 'Release', 'bms_sim.exe'), ...
+         fullfile(root, 'build', 'host', 'Debug', 'bms_sim.exe')};
+for i = 1:numel(paths)
+  sim = paths{i};
   if exist(sim, 'file')
     return;
   end
+end
+if ~exist(fullfile(root, 'host'), 'dir')
+  error('crosscheck:nosim', 'bms_sim.exe is missing from this folder. Extract the whole zip again.');
 end
 error('crosscheck:nosim', ['The simulator is not built. In the repository folder run:\n', ...
        '  cmake -S host -B build/host\n  cmake --build build/host']);
@@ -256,7 +259,7 @@ colors = [0.165 0.471 0.839; 0.922 0.408 0.204; 0.106 0.686 0.478; 0.929 0.631 0
 tmin = r.t / 60;
 tc_fw = [d.tc1 d.tc2 d.tc3 d.tc4];
 q_fw = [d.q1_w d.q2_w d.q3_w d.q4_w];
-fig = figure('visible', 'off');
+fig = new_figure();
 
 panels = {r.tc, tc_fw, 'Core temperature T_c (\circC)', 1; ...
           r.q, q_fw, 'Abnormal heat Q_{ab} (W)', 1; ...
@@ -297,5 +300,4 @@ axes('Position', [0 0.92 1 0.08], 'Visible', 'off');
 text(0.5, 0.5, txt, 'Units', 'normalized', 'HorizontalAlignment', 'center', ...
      'VerticalAlignment', 'middle', 'FontSize', 13, 'Interpreter', 'none');
 save_figure(fig, path);
-close(fig);
 end

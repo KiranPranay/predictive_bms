@@ -1,0 +1,128 @@
+# Builds the Windows package and tests it on Windows as a user would use it: the demo started
+# from its .bat file, the Octave scripts in GNU Octave for Windows, the KiCad projects in KiCad
+# for Windows (with KiCad's own ngspice), and the Xcos models in Scilab for Windows.
+# On a tag v*, the package is attached to a GitHub release.
+name: Windows package
+
+on:
+  push:
+    branches: [main, windows-package]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_EMBED: "3.12.10"
+  OCTAVE_VERSION: "10.3.0"
+  KICAD_VERSION: "10.0.7"
+  SCILAB_VERSION: "2026.0.1"
+  PYTHONUTF8: "1"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the simulator (MSVC, C++ runtime linked in)
+        run: |
+          cmake -S host -B build/host -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          cmake --build build/host --config Release --parallel
+
+      - name: Unit tests and scenarios
+        run: ctest --test-dir build/host -C Release --output-on-failure
+
+      - name: bms_sim.exe needs no Visual C++ runtime on the user's PC
+        run: |
+          python -m pip install --quiet pefile
+          python -c "import pefile,sys; pe=pefile.PE('build/host/Release/bms_sim.exe'); dlls=[e.dll.decode() for e in pe.DIRECTORY_ENTRY_IMPORT]; print(dlls); bad=[d for d in dlls if d.lower().startswith(('msvcp','vcruntime'))]; sys.exit(f'needs {bad}' if bad else 0)"
+
+      - name: Python tools tests
+        run: |
+          python -m pip install --quiet -r tools/requirements.txt
+          python -m unittest discover -s tools/tests -v
+
+      - name: Make the package
+        run: |
+          curl.exe -L --fail --retry 3 -o python-embed.zip "https://www.python.org/ftp/python/$env:PYTHON_EMBED/python-$env:PYTHON_EMBED-embed-amd64.zip"
+          python tools/package_windows.py --exe build/host/Release/bms_sim.exe --python python-embed.zip --out dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PredictiveBMS-Windows
+          path: dist/PredictiveBMS-Windows.zip
+          if-no-files-found: error
+
+      - name: "Test: the demo, started from its .bat file"
+        run: python .github/scripts/demo_check.py dist/PredictiveBMS
+
+      - name: Restore the installers
+        id: installers
+        uses: actions/cache/restore@v4
+        with:
+          path: installers
+          key: installers-octave${{ env.OCTAVE_VERSION }}-kicad${{ env.KICAD_VERSION }}-scilab${{ env.SCILAB_VERSION }}
+
+      - name: Download the installers
+        if: steps.installers.outputs.cache-hit != 'true'
+        run: |
+          New-Item -ItemType Directory -Force installers | Out-Null
+          curl.exe -L --fail --retry 3 -o installers/octave.7z "https://ftp.gnu.org/gnu/octave/windows/octave-$env:OCTAVE_VERSION-w64.7z"
+          curl.exe -L --fail --retry 3 -o installers/kicad.exe "https://github.com/KiCad/kicad-source-mirror/releases/download/$env:KICAD_VERSION/kicad-$env:KICAD_VERSION-x86_64.exe"
+          curl.exe -L --fail --retry 3 -o installers/scilab.exe "https://oos.eu-west-2.outscale.com/scilab-releases/$env:SCILAB_VERSION/scilab-$env:SCILAB_VERSION.bin.x64.exe"
+          Get-ChildItem installers | Format-Table Name, Length
+
+      - name: Save the installers
+        if: steps.installers.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: installers
+          key: installers-octave${{ env.OCTAVE_VERSION }}-kicad${{ env.KICAD_VERSION }}-scilab${{ env.SCILAB_VERSION }}
+
+      - name: "Test: the Octave scripts in GNU Octave for Windows"
+        run: |
+          7z x installers/octave.7z -oC:\octave -y | Out-Null
+          $cli = Get-ChildItem C:\octave -Recurse -Filter octave-cli.exe | Select-Object -First 1
+          Write-Output "Octave: $($cli.FullName)"
+          $dir = (Resolve-Path "dist/PredictiveBMS/3 Octave model check").Path
+          & $cli.FullName --no-gui --eval "cd('$dir'); thermal_step(); r = crosscheck(); if ~all([r.pass]), exit(1); end"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Get-ChildItem "$dir/results" | Format-Table Name, Length
+
+      - name: "Test: the KiCad projects in KiCad for Windows"
+        run: |
+          Start-Process installers/kicad.exe -ArgumentList '/S' -Wait
+          python .github/scripts/kicad_check.py "C:/Program Files/KiCad/10.0" "dist/PredictiveBMS/2 KiCad circuits"
+
+      - name: "Test: Scilab and Xcos for Windows"
+        run: |
+          Start-Process installers/scilab.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\Scilab' -Wait
+          $scilex = "C:\Scilab\bin\Scilex.exe"
+          & $scilex -nw -nb -quit -e "loadXcosLibs(); loadScicos(); d = listfiles(SCI + '/modules/xcos/demos/*.zcos'); importXcosDiagram(d(1)); disp(getversion()); disp(d(1)); exit(0);"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          if (Test-Path scilab/check_models.sce) {
+            & $scilex -nw -nb -quit -f scilab/check_models.sce
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
+
+      - name: Attach the package to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:GITHUB_REF_NAME dist/PredictiveBMS-Windows.zip --clobber
+          } else {
+            gh release create $env:GITHUB_REF_NAME dist/PredictiveBMS-Windows.zip --title "Predictive BMS $env:GITHUB_REF_NAME" --notes "Windows package: download PredictiveBMS-Windows.zip, extract it, and open START HERE.pdf."
+          }

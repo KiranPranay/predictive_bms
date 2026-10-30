@@ -43,6 +43,18 @@ The simulator results are results about the method on an illustrative cell model
 project's cells. [docs/simulator.md](docs/simulator.md) lists them, with what each gate must
 still measure.
 
+## On Windows, without building anything
+
+The GitHub releases of this repository have `PredictiveBMS-Windows.zip`: the demo, the KiCad
+projects, the Octave scripts, the Xcos models and the documents, ready to open. Extract it and
+open `START HERE.pdf`. The demo needs nothing installed: double-click
+`1 Demo - double-click.bat`. KiCad 10, GNU Octave and Scilab are free downloads.
+
+The package is made by `tools/package_windows.py`. The workflow
+`.github/workflows/windows.yml` builds it and tests it on Windows on every push: the demo
+started from its .bat file, the Octave scripts in GNU Octave for Windows, the KiCad projects in
+KiCad for Windows with its own ngspice, and Scilab with Xcos.
+
 ## Quick start
 
 ### 1. Build and test on the PC

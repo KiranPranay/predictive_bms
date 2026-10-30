@@ -4,14 +4,13 @@ function res = thermal_step()
 %   1 W of heat starts in the core at t = 0. The cell and the air are at 25 degC. The model
 %   runs for one hour with the firmware's development values (bms_params). It prints the core
 %   and surface temperatures at 60, 300, 1200 and 3600 s and the two time constants, saves
-%   build/matlab/thermal_step.csv (t, tc, ts) and the figure
-%   docs/build-guide/matlab/thermal_step.png.
+%   thermal_step.csv (t, tc, ts) and the figure thermal_step.png (see result_folders), and shows
+%   the figure when it runs in the Octave or MATLAB window.
 %
 %   The same model is a circuit: heat flow is a current, temperature a voltage, a heat
 %   capacity a capacitor to ground and a thermal resistance a resistor. The ngspice run of
 %   that circuit must give the same numbers.
 
-root = fileparts(fileparts(mfilename('fullpath')));
 p = bms_params('firmware');
 cell = 1;
 heat_w = 1;
@@ -55,16 +54,13 @@ for m = marks
 end
 fprintf('  steady state: T_core %.4f C, T_surf %.4f C\n', t_ss_core, t_ss_surf);
 
-out_dir = fullfile(root, 'build', 'matlab');
-if ~exist(out_dir, 'dir')
-  mkdir(out_dir);
-end
+[out_dir, fig_dir] = result_folders();
 fid = fopen(fullfile(out_dir, 'thermal_step.csv'), 'w');
 fprintf(fid, 't,tc,ts\n');
 fprintf(fid, '%d,%.6f,%.6f\n', [t, x]');
 fclose(fid);
 
-fig = figure('visible', 'off');
+fig = new_figure();
 plot(t / 60, x(:, 1), '-', 'Color', [0.922 0.408 0.204], 'LineWidth', 2);
 hold on;
 plot(t / 60, x(:, 2), '-', 'Color', [0.165 0.471 0.839], 'LineWidth', 2);
@@ -79,8 +75,7 @@ title(sprintf(['Two-state cell model: 1 W into the core, ambient %g \\circC ', .
                '(time constants %.1f s and %.0f s)'], t_amb, tau(1), tau(2)));
 legend({'Core T_c', 'Surface T_s', 'Steady state'}, 'Location', 'southeast');
 xlim([0 t_end / 60]);
-save_figure(fig, fullfile(root, 'docs', 'build-guide', 'matlab', 'thermal_step.png'));
-close(fig);
+save_figure(fig, fullfile(fig_dir, 'thermal_step.png'));
 
 res.t = t;
 res.tc = x(:, 1);

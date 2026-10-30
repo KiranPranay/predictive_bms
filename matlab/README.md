@@ -53,12 +53,16 @@ octave --no-gui --eval "crosscheck"
 ```
 
 In the Octave window, change the current folder to `matlab` and type `thermal_step` or
-`crosscheck`. `crosscheck({'load_defect'})` runs one scenario. If the simulator is somewhere
-else, give its path: `crosscheck({}, 'C:\path\to\bms_sim.exe')`.
+`crosscheck`, or open the file in the Octave editor and press **Run** (F5). The figures then
+also open on the screen. `crosscheck({'load_defect'})` runs one scenario. If the simulator is
+somewhere else, give its path: `crosscheck({}, 'C:\path\to\bms_sim.exe')`.
 
-The results go to `build/matlab/` (`thermal_step.csv`, `crosscheck.json` and the scenario
-logs). The figures go to `docs/build-guide/matlab/`, with a copy of `crosscheck.json` that the
-build guide uses.
+In the repository, the results go to `build/matlab/` (`thermal_step.csv`, `crosscheck.json`
+and the scenario logs). The figures go to `docs/build-guide/matlab/`, with a copy of
+`crosscheck.json` that the build guide uses.
+
+In the Windows package, this folder is "3 Octave model check" and holds the simulator,
+`bms_sim.exe`. The results and the figures go to a `results` folder inside it.
 
 **The same files run in MATLAB.** Open MATLAB, change the current folder to `matlab`, and type
 `thermal_step` or `crosscheck`.

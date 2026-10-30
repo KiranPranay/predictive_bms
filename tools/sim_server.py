@@ -24,16 +24,25 @@ import threading
 import time
 import webbrowser
 
+# ROOT is the repository, or the "program" folder of the Windows package, which has the same
+# tools/ and dashboard/ folders and bms_sim.exe at its top.
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DASHBOARD = ROOT / "dashboard" / "index.html"
 
 
+def in_package():
+    """True in the Windows package: there is no host/ source folder to build from."""
+    return not (ROOT / "host").is_dir()
+
+
 def default_sim():
+    candidates = [ROOT / "bms_sim.exe", ROOT / "bms_sim"]
     for name in ("bms_sim", "bms_sim.exe"):
         for sub in ("", "Release", "Debug"):
-            p = ROOT / "build" / "host" / sub / name
-            if p.exists():
-                return p
+            candidates.append(ROOT / "build" / "host" / sub / name)
+    for p in candidates:
+        if p.is_file():
+            return p
     return ROOT / "build" / "host" / "bms_sim"
 
 
@@ -44,7 +53,7 @@ class Simulator:
         self.proc = subprocess.Popen(
             [str(exe), "live", "--speed", str(speed)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, bufsize=1)
+            text=True, encoding="utf-8", errors="replace", bufsize=1)
         self.lock = threading.Lock()
         self.latest = None
         self.replies = []
@@ -107,9 +116,9 @@ class Verification:
         with tempfile.TemporaryDirectory() as d:
             report = pathlib.Path(d) / "report.json"
             proc = subprocess.run([str(self.exe), "run", "all", "--quiet", "--report", str(report)],
-                                  capture_output=True, text=True)
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
             try:
-                results = json.loads(report.read_text())
+                results = json.loads(report.read_text(encoding="utf-8"))
             except (OSError, ValueError):
                 results = []
         with self.lock:
@@ -179,8 +188,12 @@ def main(argv=None):
 
     exe = args.sim or default_sim()
     if not exe.exists():
+        if in_package():
+            sys.exit("bms_sim.exe is missing from the program folder. Extract the whole zip again.")
         sys.exit(f"{exe} not found. Build it first:\n"
                  "  cmake -S host -B build/host && cmake --build build/host")
+    if not DASHBOARD.exists():
+        sys.exit(f"{DASHBOARD} is missing. Extract the whole zip again.")
     sim = Simulator(exe, args.speed)
     server = http.server.ThreadingHTTPServer((args.host, args.port),
                                              make_handler(sim, Verification(exe)))
