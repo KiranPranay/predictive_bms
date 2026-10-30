@@ -84,7 +84,10 @@ tap (B1, B2, B3 or B+) ── R_entry 1-10 kΩ (at the pack) ── 330 kΩ ─�
 - Resistors: 1 % metal film (BOM item 10). Measure each 330 kΩ and 56 kΩ before fitting; Gate 1
   calibrates every channel anyway.
 - Clamp: low-leakage, from the ADC input to 3V3. The part is **TBD**: choose it at Gate 1 after a
-  breadboard leakage test, because leakage directly upsets a 330 kΩ divider (BOM item 11).
+  breadboard leakage test, because leakage directly upsets a 330 kΩ divider (BOM item 11). In the
+  KiCad simulation (`kicad/sim/cell-taps/`), every 10 nA of leakage at an ADC input moves the cell
+  reading by 4.1 mV, so 49 nA uses the whole 20 mV of Gate 1. Calibration removes a steady
+  leakage but not its change with temperature or voltage.
 - Clean all flux from this area. Contamination leaks current across high-value resistors.
 - The ADS1115 runs at 3.3 V and reads ±4.096 V full scale; no input may exceed 3.0 V
   (Gate 1 stop rule).

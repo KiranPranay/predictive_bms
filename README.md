@@ -22,6 +22,8 @@ The prototype is wired from modules on perfboard ([docs/wiring.md](docs/wiring.m
 | Dashboard | one page, served by the ESP32 or by the simulator; on the simulator it adds nine guided demonstrations, a comparison with a fixed-limit BMS and the verification results | `dashboard/index.html` |
 | Bench tools | Gate 1 calibration, Gate 9 thermal fit, Gate 10 OCV table, serial logger, simulator server | `tools/` |
 | Build guide | one PDF with the single-line diagram, circuit diagrams, wiring, both perfboard layouts hole by hole, assembly steps and checks, and snapshots of the simulation | `docs/build-guide/Build-Guide.pdf` |
+| Circuit simulation | the analog circuits (cell taps, NTC dividers, current shunt) and the cell's thermal model as KiCad 10 schematics, simulated with ngspice and checked | `kicad/` |
+| Model check | the thermal model and the Kalman observer written a second time in GNU Octave (MATLAB-compatible) and compared with the firmware sample by sample | `matlab/` |
 | Documents | wiring, firmware, gate-by-gate bring-up, simulator results, gate record sheets | `docs/` |
 
 ## Where the project stands
@@ -31,7 +33,9 @@ The prototype is wired from modules on perfboard ([docs/wiring.md](docs/wiring.m
 | Supervisor core | written; 26 unit tests and 30 scenarios pass |
 | ESP32 firmware | builds with ESP-IDF v5.5.6 without warnings (normal and bench builds); **not yet run on hardware** |
 | Dashboard | runs on the simulator; the ESP32 serves the same page |
-| Build guide | complete: circuits, single-line diagram, wiring, both perfboards hole by hole, assembly steps and checks, simulation snapshots |
+| Build guide | complete: circuits, single-line diagram, wiring, both perfboards hole by hole, assembly steps and checks, simulation snapshots, KiCad and Octave results |
+| Circuit simulation (KiCad, ngspice) | four sheets; every check passes; KiCad's electrical rules check finds no violation |
+| Model check (GNU Octave) | the Octave observer agrees with the firmware to 0.007 °C and 0.0013 W on four scenarios |
 | Hardware | not built: next is Gate 0 in [docs/bring-up.md](docs/bring-up.md) |
 | Thermal parameters, cell resistances, OCV table | estimates until Gates 4, 9 and 10 measure them; the thermal layer stays off until then (architecture 9.9) |
 
@@ -89,7 +93,22 @@ idf.py build
 idf.py -p /dev/ttyUSB0 flash monitor   # Windows: -p COM3
 ```
 
-### 4. Bench tools
+### 4. Circuit simulation in KiCad and the model check in GNU Octave
+
+Both tools are free. KiCad 10 includes the ngspice simulator; GNU Octave runs MATLAB `.m` files.
+[kicad/README.md](kicad/README.md) and [matlab/README.md](matlab/README.md) explain how to install
+and use them.
+
+```bash
+python3 kicad/run_sims.py                                 # every KiCad sheet: simulate and check
+(cd matlab && octave --no-gui --eval "thermal_step")      # the thermal model, 1 W step
+(cd matlab && octave --no-gui --eval "crosscheck")        # the Octave observer against the firmware
+```
+
+To simulate one circuit in KiCad itself, open its project in `kicad/sim/`, then **Inspect →
+Simulator**, and run the analysis written on the sheet.
+
+### 5. Bench tools
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
@@ -112,6 +131,8 @@ Each prints the console commands that store its result on the ESP32.
 dashboard/index.html           the dashboard (no external files: works on the ESP32's own Wi-Fi)
 docs/                          wiring, firmware, bring-up, simulator, gate records; architecture/
 docs/build-guide/              the build guide PDF, its figures, and the scripts that make them
+kicad/                         KiCad 10 simulation sheets (sim/) and the scripts that make and run them
+matlab/                        the thermal model and observer in GNU Octave / MATLAB, and the cross-check
 firmware/
   CMakeLists.txt, sdkconfig.*  the ESP-IDF project; sdkconfig.bench adds bench mode
   main/                        drivers, tasks, console, Wi-Fi and web server

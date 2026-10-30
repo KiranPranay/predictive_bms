@@ -2,7 +2,7 @@
 
 | File | What it is |
 | --- | --- |
-| [build-guide/Build-Guide.pdf](build-guide/Build-Guide.pdf) | The build guide in one PDF: single-line diagram, circuit diagrams, ESP32 pin map, components and costs, wiring between the units, both perfboards hole by hole with placement tables and wiring lists, assembly steps, checks before power, bring-up, and snapshots of the simulation |
+| [build-guide/Build-Guide.pdf](build-guide/Build-Guide.pdf) | The build guide in one PDF: single-line diagram, circuit diagrams, ESP32 pin map, components and costs, wiring between the units, both perfboards hole by hole with placement tables and wiring lists, assembly steps, checks before power, bring-up, snapshots of the simulation, and the circuit simulation in KiCad and the model check in GNU Octave |
 | [wiring.md](wiring.md) | How to build the prototype from modules on perfboard, without a PCB: every connection, every part value, the board layout |
 | [firmware.md](firmware.md) | How the firmware and the supervisor core work, how each part maps to the architecture, the console commands, the telemetry formats, and every value the architecture does not set |
 | [bring-up.md](bring-up.md) | What to do with the firmware and the tools at each build gate, 0 to 12 |
@@ -22,7 +22,9 @@ folder at commit `0efe68e` (27 October 2026):
 
 ## The build guide
 
-`build-guide/build_guide.py` makes the figures (`figures.py`), the HTML and the PDF. The two
+`build-guide/build_guide.py` makes the figures (`figures.py`), the HTML and the PDF. Section 16
+takes its results from `../kicad/run_sims.py` (`build-guide/kicad-sim/` and the `sim-*` and
+`kicad-*` figures) and from the Octave scripts in `../matlab/` (`build-guide/matlab/`). The two
 perfboards are described once, in `build-guide/boards.py`, and checked for shorts and open nets
 before anything is drawn. `build-guide/snapshots.py` runs the guided demonstrations in a browser
 and saves the pictures of the simulation (it needs Playwright).

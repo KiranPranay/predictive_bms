@@ -18,6 +18,8 @@ section.flow { break-before: auto; margin-top: 6mm; }
 figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
 figure img { max-width: 100%; max-height: 235mm; border: 1px solid #ddd; }
 figure.snap img { max-height: 120mm; }
+figure.kicad img { max-width: 100%; }
+figure.chart img { width: 86%; border: none; }
 figcaption { font-size: 8.8pt; color: #4f4d48; margin-top: 1.5mm; text-align: left; }
 table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 2mm 0 4mm; }
 thead { display: table-header-group; }
@@ -43,7 +45,7 @@ code { font-family: 'Liberation Mono', monospace; font-size: 9pt; background: #f
 <div class="cover">
   <div class="top">
     <div class="title">Predictive Thermal Battery Management System for Li-ion Battery Packs</div>
-    <div class="sub">Build guide: circuits, single-line diagram, wiring, component placement, assembly and the simulation</div>
+    <div class="sub">Build guide: circuits, single-line diagram, wiring, component placement, assembly, and the simulation in the project simulator, KiCad and GNU Octave</div>
     <div class="meta">
       Major project · Department of EEE<br>
       BVRIT HYDERABAD College of Engineering for Women<br>
@@ -65,7 +67,8 @@ code { font-family: 'Liberation Mono', monospace; font-size: 9pt; background: #f
 <li>Circuit diagrams</li><li>ESP32 pin map</li><li>Components</li><li>Wiring between the units</li>
 <li>Board A: cell-tap sensing</li><li>Board B: ESP32, temperatures, current, relays</li>
 <li>Module pin orders</li><li>Enclosure layout</li><li>Assembly, step by step</li>
-<li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li><li>Safety rules</li>
+<li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li>
+<li>Circuit and model simulation in KiCad and GNU Octave</li><li>Safety rules</li>
 </ol>
 <h3>1. How to use this guide</h3>
 <ul>
@@ -599,7 +602,65 @@ test with the gate's own pass criteria.</p>
 </section>
 
 <section>
-<h2>16. Safety rules</h2>
+<h2>16. Circuit and model simulation in KiCad and GNU Octave</h2>
+<p>Three tools check three different parts of the design, and each one is free and open source:</p>
+<table class=""><thead><tr><th>Tool</th><th>What it checks</th><th>Where</th></tr></thead><tbody>
+<tr><td><b>KiCad 10</b> with its simulator, <b>ngspice</b></td><td>The analog circuits: the cell-tap dividers and filters, the NTC dividers, the current shunt, and the cell's thermal model drawn as an electrical circuit</td><td><code>kicad/</code></td></tr>
+<tr><td><b>GNU Octave</b> (the same files run in MATLAB)</td><td>The predictive model: the thermal model and the Kalman observer, written a second time from the firmware and compared with it sample by sample</td><td><code>matlab/</code></td></tr>
+<tr><td>The project's simulator (section 15)</td><td>The complete firmware: every limit, fault and gate scenario, on a simulated pack</td><td><code>host/</code></td></tr>
+</tbody></table>
+<p>The KiCad sheets open in KiCad 10: open the project, then <b>Inspect → Simulator</b> and run the analysis written on the
+sheet. <code>python3 kicad/run_sims.py</code> runs all of them from the command line and checks the results;
+the Octave scripts run with <code>octave --no-gui --eval "crosscheck"</code> in <code>matlab/</code>. KiCad's
+electrical rules check finds no violation on any sheet. All results in this section are simulation results with the
+part values on the sheets; the gates measure the real circuits.</p>
+<h3>Simulation checks</h3>
+<table class=""><thead><tr><th>Circuit</th><th>Check</th><th>Result</th><th>Limit or unit</th><th></th></tr></thead><tbody>
+<tr><td>cell taps</td><td>highest ADC input at 4 x 4.2 V</td><td>2.431</td><td>&lt; 3.0 V (Gate 1 stop)</td><td>pass</td></tr>
+<tr><td>cell taps</td><td>tap error per 10 nA of leakage</td><td>4.11</td><td>mV (for the TBD clamp)</td><td>pass</td></tr>
+<tr><td>cell taps</td><td>settling to 16 bits after a step</td><td>64.4</td><td>&lt; 200 ms (one 5 Hz sample)</td><td>pass</td></tr>
+<tr><td>NTC</td><td>divider at 25 °C</td><td>1.65</td><td>1.65 V (half of 3.3 V)</td><td>pass</td></tr>
+<tr><td>NTC</td><td>ADC voltage at the charge trip (45 °C)</td><td>1</td><td>0.15-2.45 V (ESP32 ADC1, 12 dB)</td><td>pass</td></tr>
+<tr><td>NTC</td><td>ADC voltage at the discharge trip (55 °C)</td><td>0.7573</td><td>0.15-2.45 V (ESP32 ADC1, 12 dB)</td><td>pass</td></tr>
+<tr><td>current</td><td>shunt voltage at 5 A</td><td>25</td><td>within +/-81.92 mV (INA226)</td><td>pass</td></tr>
+<tr><td>current</td><td>sign: discharge reads positive</td><td>25</td><td>&gt; 0</td><td>pass</td></tr>
+<tr><td>current</td><td>error if the module&#x27;s R100 is left in place</td><td>-4.76</td><td>% (must be removed; Gate 1 allows 2 %)</td><td>pass</td></tr>
+<tr><td>thermal</td><td>core rise after 1 h of 1 W</td><td>29.459</td><td>approaches 32 °C (R_core + R_air)</td><td>pass</td></tr>
+<tr><td>thermal</td><td>ngspice against Octave, largest difference</td><td>0.0002</td><td>&lt; 0.01 °C</td><td>pass</td></tr>
+</tbody></table>
+</section>
+
+<section>
+<h3>16.1 Cell taps (board A)</h3>
+<figure class="kicad"><img src="figures/kicad-cell-taps.svg" alt="Figure 21. KiCad sheet of the four cell-tap channels. V1–V4 are the cells at full charge; R13–R16 are the tap resistors at the pack. I1 stands for leakage at an ADC input."><figcaption>Figure 21. KiCad sheet of the four cell-tap channels. V1–V4 are the cells at full charge; R13–R16 are the tap resistors at the pack. I1 stands for leakage at an ADC input.</figcaption></figure>
+<figure class="chart"><img src="figures/sim-taps-leakage.svg" alt="Figure 22. Leakage at an ADC input (from the clamp diode or the ADC itself) against the error in the cell reading. Calibration removes a steady leakage, but not one that changes with temperature, so the clamp must leak well below the 49 nA that would use the whole Gate 1 limit."><figcaption>Figure 22. Leakage at an ADC input (from the clamp diode or the ADC itself) against the error in the cell reading. Calibration removes a steady leakage, but not one that changes with temperature, so the clamp must leak well below the 49 nA that would use the whole Gate 1 limit.</figcaption></figure>
+<figure class="chart"><img src="figures/sim-taps-ac.svg" alt="Figure 23. Frequency response from a tap to its ADC input. The filter passes the cell voltage and removes noise above about 27 Hz; after a step the input settles to 16-bit accuracy in 64 ms, less than one 200 ms sample."><figcaption>Figure 23. Frequency response from a tap to its ADC input. The filter passes the cell voltage and removes noise above about 27 Hz; after a step the input settles to 16-bit accuracy in 64 ms, less than one 200 ms sample.</figcaption></figure>
+<h3>16.2 NTC divider (board B)</h3>
+<figure class="kicad"><img src="figures/kicad-ntc-divider.svg" alt="Figure 24. KiCad sheet of one NTC divider. TH1 follows the B3950 equation at the simulation temperature, which the DC sweep steps from −20 to 100 °C."><figcaption>Figure 24. KiCad sheet of one NTC divider. TH1 follows the B3950 equation at the simulation temperature, which the DC sweep steps from −20 to 100 °C.</figcaption></figure>
+<figure class="chart"><img src="figures/sim-ntc.svg" alt="Figure 25. Voltage at the ESP32 ADC against the NTC&#x27;s temperature. It stays in the ADC&#x27;s accurate range from about 3 °C to above 100 °C; at the 45 °C and 55 °C trips it is 1.00 V and 0.76 V."><figcaption>Figure 25. Voltage at the ESP32 ADC against the NTC's temperature. It stays in the ADC's accurate range from about 3 °C to above 100 °C; at the 45 °C and 55 °C trips it is 1.00 V and 0.76 V.</figcaption></figure>
+<h3>16.3 Current sense</h3>
+<figure class="kicad"><img src="figures/kicad-current-sense.svg" alt="Figure 26. KiCad sheet of the 5 mΩ shunt and the INA226 inputs. R2 is the module&#x27;s own R100 shunt, which is removed; it is excluded from the simulation."><figcaption>Figure 26. KiCad sheet of the 5 mΩ shunt and the INA226 inputs. R2 is the module's own R100 shunt, which is removed; it is excluded from the simulation.</figcaption></figure>
+<figure class="chart"><img src="figures/sim-current.svg" alt="Figure 27. Shunt voltage from 5 A of charge to 5 A of discharge: 25.0 mV at 5 A, inside the INA226&#x27;s ±81.92 mV. With R100 left in place the reading is 4.76 % low."><figcaption>Figure 27. Shunt voltage from 5 A of charge to 5 A of discharge: 25.0 mV at 5 A, inside the INA226's ±81.92 mV. With R100 left in place the reading is 4.76 % low.</figcaption></figure>
+<h3>16.4 The thermal model of a cell</h3>
+<figure class="kicad"><img src="figures/kicad-thermal-model.svg" alt="Figure 28. The two-node thermal model of section 9.1 as an electrical circuit: 1 V stands for 1 °C, 1 A for 1 W, 1 F for 1 J/°C and 1 Ω for 1 °C/W. I1 is 1 W of heat in the core from t = 10 s."><figcaption>Figure 28. The two-node thermal model of section 9.1 as an electrical circuit: 1 V stands for 1 °C, 1 A for 1 W, 1 F for 1 J/°C and 1 Ω for 1 °C/W. I1 is 1 W of heat in the core from t = 10 s.</figcaption></figure>
+<figure class="chart"><img src="figures/sim-thermal.svg" alt="Figure 29. Core and surface temperatures after 1 W starts in the core. The lines are ngspice; the dots are the Octave script, which solves the same model a second way. The two agree to 0.0002 °C. The cell needs more than an hour to settle, which is why the supervisor estimates the heat instead of waiting for a fixed limit."><figcaption>Figure 29. Core and surface temperatures after 1 W starts in the core. The lines are ngspice; the dots are the Octave script, which solves the same model a second way. The two agree to 0.0002 °C. The cell needs more than an hour to settle, which is why the supervisor estimates the heat instead of waiting for a fixed limit.</figcaption></figure>
+<h3>16.5 The observer in GNU Octave</h3>
+<p><code>matlab/thermal_observer.m</code> is a copy of the firmware's Kalman observer (section 9.2), written in the
+<code>.m</code> language. <code>crosscheck</code> runs simulator scenarios with a log of every sample, gives the logged
+current and temperatures to the Octave observer, and compares its core temperature and abnormal heat with the
+firmware's. The limits are 0.01 °C and 0.002 W; the differences come from the rounding of the log.</p>
+<table class=""><thead><tr><th>Scenario</th><th>Samples compared</th><th>Largest core-temperature difference</th><th>Largest abnormal-heat difference</th><th>Result</th></tr></thead><tbody>
+<tr><td><code>discharge_steps</code></td><td>24,600</td><td>0.0029 °C</td><td>0.0013 W</td><td>agree</td></tr>
+<tr><td><code>heat_no_current</code></td><td>950</td><td>0.0066 °C</td><td>0.0013 W</td><td>agree</td></tr>
+<tr><td><code>load_defect</code></td><td>4,307</td><td>0.0026 °C</td><td>0.0013 W</td><td>agree</td></tr>
+<tr><td><code>soft_short</code></td><td>28,501</td><td>0.0040 °C</td><td>0.0010 W</td><td>agree</td></tr>
+</tbody></table>
+<figure class="chart"><img src="matlab/crosscheck_load_defect.png" alt="Figure 30. The Octave observer (solid) against the firmware (dashed) on the cell-defect scenario. Top: core temperature and abnormal heat of each cell. Bottom: the differences, in thousandths of a degree and thousandths of a watt."><figcaption>Figure 30. The Octave observer (solid) against the firmware (dashed) on the cell-defect scenario. Top: core temperature and abnormal heat of each cell. Bottom: the differences, in thousandths of a degree and thousandths of a watt.</figcaption></figure>
+<figure class="chart"><img src="matlab/thermal_step.png" alt="Figure 31. The step response drawn by Octave, with the steady-state temperatures."><figcaption>Figure 31. The step response drawn by Octave, with the steady-state temperatures.</figcaption></figure>
+</section>
+
+<section>
+<h2>17. Safety rules</h2>
 <div class="safety">
 <ul>
 <li>No lithium cell is connected before Gate 3. The first live power-up and the first charge are never done alone.</li>

@@ -1,0 +1,1607 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "430c6da1-f43c-5bd9-9406-b532349f38ad")
+	(paper "A4")
+	(title_block
+		(title "NTC temperature divider (board B), one of five")
+		(date "2026-10-30")
+		(rev "1")
+		(company "Predictive BMS prototype")
+		(comment 1 "Architecture rev 2.2 section 6; docs/wiring.md section 4.2")
+		(comment 2 "NTC 10k B3950, modelled by its B-value equation at the simulation temperature")
+		(comment 3 "Simulation: .dc TEMP -20 100 1 sweeps the NTC from -20 to 100 °C")
+	)
+	(lib_symbols
+		(symbol "Simulation_SPICE:VDC"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0.0254))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "V"
+				(at 2.54 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Value" "1"
+				(at 2.54 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Voltage source, DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Pins" "1=+ 2=-"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Type" "DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Device" "V"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "ki_keywords" "simulation"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "VDC_0_0"
+				(polyline
+					(pts
+						(xy -1.27 0.254)
+						(xy 1.27 0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -0.762 -0.254)
+						(xy -1.27 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0.254 -0.254)
+						(xy -0.254 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 1.27 -0.254)
+						(xy 0.762 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(text "+"
+					(at 0 1.905 0)
+					(effects (font (size 1.27 1.27)))
+				)
+			)
+			(symbol "VDC_0_1"
+				(circle
+					(center 0 0)
+					(radius 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type background))
+				)
+			)
+			(symbol "VDC_1_1"
+				(pin passive line
+					(at 0 5.08 270)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 90)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:GND"
+			(power global)
+			(pin_numbers (hide yes))
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 -1.27)
+						(xy 1.27 -1.27)
+						(xy 0 -2.54)
+						(xy -1.27 -1.27)
+						(xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:PWR_FLAG"
+			(power global)
+			(pin_numbers (hide yes))
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 1.27)
+						(xy -1.016 1.905)
+						(xy 0 2.54)
+						(xy 1.016 1.905)
+						(xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:+3V3"
+			(power global)
+			(pin_numbers (hide yes))
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "+3V3"
+				(at 0 3.556 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Power symbol creates a global label with name \"+3V3\""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "+3V3_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27)
+						(xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0 2.54)
+						(xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "+3V3_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:Thermistor_NTC"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "TH"
+				(at -4.445 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "Thermistor_NTC"
+				(at 3.175 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 1.27 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Temperature dependent resistor, negative temperature coefficient"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "thermistor NTC resistor sensor RTD"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_fp_filters" "R_* RV_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "Thermistor_NTC_0_1"
+				(arc
+					(start -3.175 2.413)
+					(mid -3.0506 2.3165)
+					(end -3.048 2.159)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -3.048 2.794)
+					(mid -2.9736 2.9736)
+					(end -2.794 3.048)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -2.794 3.048)
+					(mid -2.6144 2.9736)
+					(end -2.54 2.794)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -2.794 2.54)
+					(mid -2.9736 2.6144)
+					(end -3.048 2.794)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -2.794 1.905)
+					(mid -2.9736 1.9794)
+					(end -3.048 2.159)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -2.54 2.159)
+					(mid -2.6144 1.9794)
+					(end -2.794 1.905)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(arc
+					(start -2.159 2.794)
+					(mid -2.434 2.5608)
+					(end -2.794 2.54)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -2.54 2.159)
+						(xy -2.54 2.794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -2.54 -3.683)
+						(xy -2.54 -1.397)
+						(xy -2.794 -2.159)
+						(xy -2.286 -2.159)
+						(xy -2.54 -1.397)
+						(xy -2.54 -1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type outline))
+				)
+				(polyline
+					(pts
+						(xy -1.778 2.54)
+						(xy -1.778 1.524)
+						(xy 1.778 -1.524)
+						(xy 1.778 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -1.778 -1.397)
+						(xy -1.778 -3.683)
+						(xy -2.032 -2.921)
+						(xy -1.524 -2.921)
+						(xy -1.778 -3.683)
+						(xy -1.778 -3.429)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type outline))
+				)
+				(rectangle
+					(start -1.016 2.54)
+					(end 1.016 -2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "Thermistor_NTC_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0.254))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762)
+						(xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762)
+						(xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:VDC")
+		(at 50.8 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0e7b94e9-f44c-58f2-a0be-5ad7f15cae42")
+		(property "Reference" "V1"
+			(at 54.61 95.25 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "3.3"
+			(at 54.61 97.79 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Voltage source, DC"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Type" "DC"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Device" "V"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "simulation"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Params" "dc=3.3"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "d5c236bd-2e2c-5643-a715-ab03a9d932b9")
+		)
+		(pin "2"
+			(uuid "0550b654-1fcf-5b52-9b40-c0f4a6323887")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "V1")
+		(unit 1)
+	)
+))
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 50.8 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6ec81a9e-f375-5cd8-bc5d-692256ce22e9")
+		(property "Reference" "#PWR01"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "GND"
+			(at 50.8 107.95 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "f9b87d00-b77a-56ee-9ac7-b0efbc45f718")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#PWR01")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 50.8 101.6)
+			(xy 38.1 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "75337d2e-dea2-5421-894d-5163e4af211f")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 38.1 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "094a131e-0bfc-5f1e-a3f0-3c8f4a796417")
+		(property "Reference" "#FLG02"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "PWR_FLAG"
+			(at 38.1 96.52 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "flag power"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "7f66b5c7-b765-50b5-8b07-e3589f5fb917")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#FLG02")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 50.8 91.44)
+			(xy 50.8 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "398631ac-755e-57c1-a67c-703efbbef41c")
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 50.8 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7f424058-b620-570f-b2a3-a79323f68675")
+		(property "Reference" "#PWR03"
+			(at 50.8 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "+3V3"
+			(at 50.8 57.15 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 50.8 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 50.8 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 50.8 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 50.8 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "ceb5b12c-4da0-5147-b082-c4af0657b449")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#PWR03")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 50.8 60.96)
+			(xy 38.1 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "61701831-5f42-5f2f-9bc4-63572548e790")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 38.1 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c2bdee72-ae51-5702-bec9-6e182047a892")
+		(property "Reference" "#FLG04"
+			(at 38.1 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "PWR_FLAG"
+			(at 38.1 55.88 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 38.1 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 38.1 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 38.1 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "flag power"
+			(at 38.1 60.96 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "9b00974e-ec05-5bf9-a768-f981292a0dde")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#FLG04")
+		(unit 1)
+	)
+))
+	)
+	(text "ESP32 3V3"
+		(exclude_from_sim yes)
+		(at 55.88 73.66 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "783efa96-d248-583e-ab25-ee9f616e083c")
+	)
+	(wire
+		(pts
+			(xy 50.8 60.96)
+			(xy 81.28 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "79c8c7f6-b928-510b-9093-c05a32935aff")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 81.28 67.31 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "87c63101-034c-52f8-a782-95acfb951cfd")
+		(property "Reference" "R1"
+			(at 83.82 66.04 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 83.82 68.58 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Resistor"
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Note" "1 % metal film (section 6)"
+			(at 81.28 67.31 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "c91765dd-c0a7-50d2-8f8d-d21254c4f2e3")
+		)
+		(pin "2"
+			(uuid "8310bc4c-fc68-5a34-9885-37d667dcd13d")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "R1")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 81.28 60.96)
+			(xy 81.28 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "afda041f-d923-5df7-9807-ff7a11a37a7f")
+	)
+	(wire
+		(pts
+			(xy 81.28 71.12)
+			(xy 81.28 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0cf2d6fb-33a1-52b1-816e-616d665e945d")
+	)
+	(junction
+		(at 81.28 78.74)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b6822f28-69d3-59f7-bf37-ee01734ae98e")
+	)
+	(symbol
+		(lib_id "Device:Thermistor_NTC")
+		(at 81.28 85.09 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f3562e40-cb69-55a9-9b56-5c7cc0b41d1b")
+		(property "Reference" "TH1"
+			(at 83.82 83.82 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "10k B3950"
+			(at 83.82 86.36 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Temperature dependent resistor, negative temperature coefficient"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "thermistor NTC resistor sensor RTD"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_fp_filters" "R_* RV_*"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Device" "I"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Type" "="
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Params" "i=V(NTC_ADC)/(10k*exp(3950*(1/(temper+273.15)-1/298.15)))"
+			(at 81.28 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "3e2c60ce-b76b-53ae-b3c1-84c75e734dda")
+		)
+		(pin "2"
+			(uuid "a1496aa6-3c30-54d2-92d5-a3bcbe4140d3")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "TH1")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 81.28 78.74)
+			(xy 81.28 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3ead3095-88e0-5732-b896-803f8d794f73")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 81.28 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "664d9a25-e760-539d-935e-1a62c20e1451")
+		(property "Reference" "#PWR05"
+			(at 81.28 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "GND"
+			(at 81.28 95.25 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 81.28 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 81.28 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 81.28 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 81.28 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "6c640302-bfe5-5c4d-b858-f966b515610b")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#PWR05")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 81.28 78.74)
+			(xy 104.14 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a28e8c22-55cf-50d1-9352-a808a981fe80")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 104.14 85.09 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e4b9a229-5506-5e6f-9fc5-f6190e0e7e96")
+		(property "Reference" "C1"
+			(at 106.68 83.82 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 106.68 86.36 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 104.14 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 104.14 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "cap capacitor"
+			(at 104.14 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_fp_filters" "C_*"
+			(at 104.14 85.09 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "03da5f02-0465-555c-8a9a-1ef6289d1193")
+		)
+		(pin "2"
+			(uuid "fbab0d6a-55a1-584d-a54d-b4f4aec8b274")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "C1")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 104.14 78.74)
+			(xy 104.14 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "21722a93-fb5c-5ef6-8e19-032a8d8ab9bf")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "76a6397e-3c1f-576d-a961-57cb67f738e1")
+		(property "Reference" "#PWR06"
+			(at 104.14 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "GND"
+			(at 104.14 95.25 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 104.14 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 104.14 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 104.14 88.9 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "ceca050d-a4d0-51bc-a3c8-42021a41b24c")
+		)
+		(instances (project "ntc-divider"
+	(path "/430c6da1-f43c-5bd9-9406-b532349f38ad"
+		(reference "#PWR06")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 104.14 78.74)
+			(xy 127 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f193a134-6f30-50b8-82ca-4a492f027fc1")
+	)
+	(junction
+		(at 104.14 78.74)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "80c3b760-c152-5e27-9719-da664dfb8b37")
+	)
+	(global_label "NTC_ADC"
+		(shape passive)
+		(at 127 78.74 0)
+		(fields_autoplaced yes)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left)
+		)
+		(uuid "d9795ac8-a71f-5b7c-a676-cf1b961fba8d")
+	)
+	(text "to ESP32 GPIO32-36 (ADC1)"
+		(exclude_from_sim yes)
+		(at 142.24 78.105 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "47ba38ed-2ba4-5154-a63b-23789b993e69")
+	)
+	(text ".dc TEMP -20 100 1"
+		(exclude_from_sim no)
+		(at 25.4 27.94 0)
+		(effects
+			(font (size 2 2))
+			(justify left top)
+		)
+		(uuid "67531d70-0386-540d-be37-16b80d439f50")
+	)
+	(text "TH1 is a current source equal to V / R(T), where R(T) = 10 kΩ x exp(3950 x (1/T - 1/298.15)) and T is\nin kelvin: the B3950 equation the firmware uses (section 6). T is the simulation temperature ('temper'),\nwhich the DC sweep steps from -20 to 100 °C. No other part here depends on it."
+		(exclude_from_sim yes)
+		(at 25.4 127 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "c7684517-f5f0-5f66-9be1-8b1c352e74c0")
+	)
+	(sheet_instances (path "/"
+	(page "1")
+))
+)

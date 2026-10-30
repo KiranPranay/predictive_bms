@@ -43,7 +43,7 @@ void Bench::step() {
   out = sup->step(raw);
   pack.load_relay = out.load_on;
   pack.charge_relay = out.charge_on;
-  if (csv && ++sub_ >= static_cast<int>(bms::cfg::kSampleHz)) {
+  if (csv && ++sub_ >= csv_every) {
     sub_ = 0;
     static Snapshot s;
     sup->snapshot(s);

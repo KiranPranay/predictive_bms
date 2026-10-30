@@ -22,7 +22,8 @@ class Bench {
   bms::ModelParams params;
   std::unique_ptr<bms::Supervisor> sup;
   bms::Outputs out;
-  std::FILE* csv = nullptr;   // optional 1 Hz log in the firmware's CSV format
+  std::FILE* csv = nullptr;   // optional log in the firmware's CSV format
+  int csv_every = static_cast<int>(bms::cfg::kSampleHz);   // samples per row: 1 Hz by default
 
   void step();
   void run(double seconds);

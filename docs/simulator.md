@@ -15,6 +15,7 @@ cmake -S host -B build/host && cmake --build build/host
 build/host/bms_sim list                    # the scenarios
 build/host/bms_sim run all                 # every scenario with its checks
 build/host/bms_sim run soft_short --csv soft_short.csv   # one scenario, with its 1 Hz log
+build/host/bms_sim run soft_short --csv soft_short.csv --csv-all   # a log row for every 5 Hz sample
 python3 tools/demo.py                      # dashboard at http://127.0.0.1:8080/
 ```
 

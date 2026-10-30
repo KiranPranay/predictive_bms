@@ -1,0 +1,1175 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "706baf84-28f4-5fa9-bfd1-bda96ef4b236")
+	(paper "A4")
+	(title_block
+		(title "Pack current shunt and INA226 input")
+		(date "2026-10-30")
+		(rev "1")
+		(company "Predictive BMS prototype")
+		(comment 1 "Architecture rev 2.2 section 4; docs/wiring.md sections 2 and 4.3")
+		(comment 2 "I1 sets the pack current: positive is discharge, negative is charge")
+		(comment 3 "Simulation: .dc I1 -5 5 0.1")
+	)
+	(lib_symbols
+		(symbol "Simulation_SPICE:VDC"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0.0254))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "V"
+				(at 2.54 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Value" "1"
+				(at 2.54 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Voltage source, DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Pins" "1=+ 2=-"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Type" "DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Device" "V"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "ki_keywords" "simulation"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "VDC_0_0"
+				(polyline
+					(pts
+						(xy -1.27 0.254)
+						(xy 1.27 0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -0.762 -0.254)
+						(xy -1.27 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0.254 -0.254)
+						(xy -0.254 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 1.27 -0.254)
+						(xy 0.762 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(text "+"
+					(at 0 1.905 0)
+					(effects (font (size 1.27 1.27)))
+				)
+			)
+			(symbol "VDC_0_1"
+				(circle
+					(center 0 0)
+					(radius 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type background))
+				)
+			)
+			(symbol "VDC_1_1"
+				(pin passive line
+					(at 0 5.08 270)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 90)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:GND"
+			(power global)
+			(pin_numbers (hide yes))
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 -1.27)
+						(xy 1.27 -1.27)
+						(xy 0 -2.54)
+						(xy -1.27 -1.27)
+						(xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:PWR_FLAG"
+			(power global)
+			(pin_numbers (hide yes))
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 1.27)
+						(xy -1.016 1.905)
+						(xy 0 2.54)
+						(xy 1.016 1.905)
+						(xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Simulation_SPICE:IDC"
+			(pin_numbers (hide yes))
+			(pin_names (offset 0.0254))
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "I"
+				(at 2.54 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Value" "1"
+				(at 2.54 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font (size 1.27 1.27))
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Description" "Current source, DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Pins" "1=+ 2=-"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Type" "DC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Sim.Device" "I"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "ki_keywords" "simulation"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "IDC_0_0"
+				(polyline
+					(pts
+						(xy -1.27 0.254)
+						(xy 1.27 0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy -0.762 -0.254)
+						(xy -1.27 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0.254 -0.254)
+						(xy -0.254 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 1.27 -0.254)
+						(xy 0.762 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+			)
+			(symbol "IDC_0_1"
+				(polyline
+					(pts
+						(xy -0.254 1.778)
+						(xy 0 1.27)
+						(xy 0.254 1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(polyline
+					(pts
+						(xy 0 1.27)
+						(xy 0 2.286)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill (type none))
+				)
+				(circle
+					(center 0 0)
+					(radius 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill (type background))
+				)
+			)
+			(symbol "IDC_1_1"
+				(pin passive line
+					(at 0 5.08 270)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "1"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 90)
+					(length 2.54)
+					(name ""
+						(effects (font (size 1.27 1.27)))
+					)
+					(number "2"
+						(effects (font (size 1.27 1.27)))
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:VDC")
+		(at 50.8 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "90203152-3c5e-57aa-8bee-72402ff704cb")
+		(property "Reference" "V1"
+			(at 54.61 95.25 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "14.8"
+			(at 54.61 97.79 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Voltage source, DC"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Type" "DC"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Device" "V"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "simulation"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Params" "dc=14.8"
+			(at 50.8 96.52 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "56f32608-5bc9-5fda-8987-36109c7bca08")
+		)
+		(pin "2"
+			(uuid "8632b820-acb2-52af-83e6-9097a0d0127d")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "V1")
+		(unit 1)
+	)
+))
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 50.8 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a37a415e-b091-502a-ab2c-968642182b57")
+		(property "Reference" "#PWR01"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "GND"
+			(at 50.8 107.95 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 50.8 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "708f1480-e8c4-5603-9839-1fefd8c8d72d")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "#PWR01")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 50.8 101.6)
+			(xy 38.1 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3f45f6f0-c229-5d8c-b2e0-0ff895885e32")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 38.1 101.6 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4dd3c986-3cb9-5bc5-9856-af133fe9ff29")
+		(property "Reference" "#FLG02"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "PWR_FLAG"
+			(at 38.1 96.52 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "flag power"
+			(at 38.1 101.6 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "6adb5b5c-6133-521c-b227-cbaf155fb51a")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "#FLG02")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 50.8 91.44)
+			(xy 50.8 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1fff9f9-9875-5817-9f99-4cfd28ed33a7")
+	)
+	(text "Pack after the BMS\nand the 7.5 A fuse"
+		(exclude_from_sim yes)
+		(at 55.88 76.2 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "45568da4-936a-5c7a-8ec0-a94b7b64a2bc")
+	)
+	(wire
+		(pts
+			(xy 50.8 60.96)
+			(xy 71.12 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fad1a13b-4145-5714-85a5-211113067375")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 74.93 60.96 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b87f28fe-5b07-5762-8eb5-359a2327c8c7")
+		(property "Reference" "R1"
+			(at 74.93 58.42 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "5m"
+			(at 74.93 63.5 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Resistor"
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Note" "5 mΩ external shunt (BOM item 13)"
+			(at 74.93 60.96 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "8fe8b2fd-2014-51e3-8ded-dfc1e6366624")
+		)
+		(pin "2"
+			(uuid "4c28fad3-a0a0-5622-b97d-5055f9ec71a0")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "R1")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 78.74 60.96)
+			(xy 104.14 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "12797fb4-fb9b-5b67-ad6c-6f8abb0c62a4")
+	)
+	(label "SENSE_P"
+		(at 58.42 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left bottom)
+		)
+		(uuid "ce87d876-63e5-5880-8ab2-84ae6248ea28")
+	)
+	(label "SENSE_N"
+		(at 86.36 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left bottom)
+		)
+		(uuid "6aab0c91-f9d9-5b30-a8bd-fdf0ffc8cd67")
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:IDC")
+		(at 104.14 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f732a276-8dca-540f-ba00-939ab4b2180d")
+		(property "Reference" "I1"
+			(at 107.95 64.77 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Value" "1"
+			(at 107.95 67.31 0)
+			(effects
+				(font (size 1.27 1.27))
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#sec_Independent_Sources_for"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Current source, DC"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Type" "DC"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Device" "I"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "simulation"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Sim.Params" "dc=1"
+			(at 104.14 66.04 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "73ffba58-870f-5ba3-91d1-8faf73e798fd")
+		)
+		(pin "2"
+			(uuid "85d6b958-ce30-5def-851a-11c648c8d50d")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "I1")
+		(unit 1)
+	)
+))
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "47f36677-b516-5cda-9042-75d3368a59d4")
+		(property "Reference" "#PWR03"
+			(at 104.14 71.12 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "GND"
+			(at 104.14 77.47 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 104.14 71.12 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 104.14 71.12 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 71.12 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "global power"
+			(at 104.14 71.12 0)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "a888ba39-6867-573e-8937-7afdd6c9aba9")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "#PWR03")
+		(unit 1)
+	)
+))
+	)
+	(text "Load (or charger)"
+		(exclude_from_sim yes)
+		(at 109.22 76.2 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "bac58a8a-489b-51d1-95dd-d18106138301")
+	)
+	(label "SENSE_P"
+		(at 63.5 116.84 180)
+		(fields_autoplaced yes)
+		(effects
+			(font (size 1.27 1.27))
+			(justify right bottom)
+		)
+		(uuid "f58bab6d-374b-58ef-85e8-216939a1ca06")
+	)
+	(wire
+		(pts
+			(xy 63.5 116.84)
+			(xy 71.12 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c9ad9213-3e7c-5ddd-af17-07d1edd5a42b")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 74.93 116.84 90)
+		(unit 1)
+		(exclude_from_sim yes)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a7a4eb41-d17b-5823-959a-6552613841ad")
+		(property "Reference" "R2"
+			(at 74.93 114.3 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "0.1"
+			(at 74.93 119.38 90)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "Resistor"
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Note" "INA226 module's R100: remove it (BOM item 12)"
+			(at 74.93 116.84 90)
+			(hide yes)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1"
+			(uuid "b273d08b-6f83-5906-871e-860cf7a74b83")
+		)
+		(pin "2"
+			(uuid "152079a6-9456-58c3-8c7f-9f793673f07f")
+		)
+		(instances (project "current-sense"
+	(path "/706baf84-28f4-5fa9-bfd1-bda96ef4b236"
+		(reference "R2")
+		(unit 1)
+	)
+))
+	)
+	(wire
+		(pts
+			(xy 78.74 116.84)
+			(xy 86.36 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "48178c8d-70d5-50cd-9edf-99c0ddf66a9b")
+	)
+	(label "SENSE_N"
+		(at 86.36 116.84 0)
+		(fields_autoplaced yes)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left bottom)
+		)
+		(uuid "445efe37-91fd-5064-90df-9068f3145e3b")
+	)
+	(text "INA226 IN+ and IN- (Kelvin leads). R2 is the module's own R100 shunt. It is excluded from the\nsimulation because it is removed from the module; run_sims.py puts it back once to show the error."
+		(exclude_from_sim yes)
+		(at 38.1 127 0)
+		(effects
+			(font (size 1.27 1.27))
+			(justify left top)
+		)
+		(uuid "5a63f390-2a7f-5fcf-ba8b-2e0c8587c5b9")
+	)
+	(text ".dc I1 -5 5 0.1"
+		(exclude_from_sim no)
+		(at 25.4 27.94 0)
+		(effects
+			(font (size 2 2))
+			(justify left top)
+		)
+		(uuid "aacc3124-868a-5727-acde-73b186e3569c")
+	)
+	(sheet_instances (path "/"
+	(page "1")
+))
+)

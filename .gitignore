@@ -20,6 +20,14 @@ logs/
 # Notes for the developer
 notes/
 
+# KiCad's per-user files, made when a project is opened
+*.kicad_prl
+*-backups/
+_autosave-*
+*.lck
+fp-info-cache
+*.wbk
+
 # Editors and systems
 .vscode/
 .idea/

@@ -129,6 +129,33 @@ def snapshot_results():
     return None
 
 
+def kicad_results():
+    p = HERE / "kicad-sim" / "results.json"
+    return json.loads(p.read_text()) if p.exists() else None
+
+
+def octave_results():
+    p = HERE / "matlab" / "crosscheck.json"
+    return json.loads(p.read_text()) if p.exists() else None
+
+
+def kicad_checks_table(k):
+    if not k:
+        return "<p>Run <code>python3 kicad/run_sims.py</code> to add the circuit simulation results.</p>"
+    rows = [[E(c["circuit"]), E(c["check"]), E(f"{c['value']:g}" if isinstance(c["value"], (int, float)) else str(c["value"])),
+             E(c["limit"]), "pass" if c["pass"] else "<b>FAIL</b>"] for c in k["checks"]]
+    return table(["Circuit", "Check", "Result", "Limit or unit", ""], rows)
+
+
+def octave_table(oc):
+    if not oc:
+        return "<p>Run <code>crosscheck</code> in Octave (matlab/README.md) to add the cross-check results.</p>"
+    rows = [[f"<code>{E(r['scenario'])}</code>", f"{r['rows_compared']:,}", f"{r['max_dtc_c']:.4f} °C",
+             f"{r['max_dq_w']:.4f} W", "agree" if r["pass"] else "<b>differ</b>"] for r in oc["results"]]
+    return table(["Scenario", "Samples compared", "Largest core-temperature difference",
+                  "Largest abnormal-heat difference", "Result"], rows)
+
+
 def demo_table(res):
     if not res:
         return "<p>Run <code>snapshots.py</code> to add the demonstration results.</p>"
@@ -167,6 +194,8 @@ section.flow { break-before: auto; margin-top: 6mm; }
 figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
 figure img { max-width: 100%; max-height: 235mm; border: 1px solid #ddd; }
 figure.snap img { max-height: 120mm; }
+figure.kicad img { max-width: 100%; }
+figure.chart img { width: 86%; border: none; }
 figcaption { font-size: 8.8pt; color: #4f4d48; margin-top: 1.5mm; text-align: left; }
 table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 2mm 0 4mm; }
 thead { display: table-header-group; }
@@ -198,6 +227,8 @@ def build_html(snap):
     count = parts_count([a, b])
     bom, bom_total = bom_rows()
     res = snapshot_results()
+    kres, oc = kicad_results(), octave_results()
+    kr = kres["results"] if kres else None
     built = datetime.date.today().strftime("%d %B %Y").lstrip("0")
     snaps = HERE / "snapshots"
 
@@ -267,7 +298,7 @@ def build_html(snap):
 <div class="cover">
   <div class="top">
     <div class="title">Predictive Thermal Battery Management System for Li-ion Battery Packs</div>
-    <div class="sub">Build guide: circuits, single-line diagram, wiring, component placement, assembly and the simulation</div>
+    <div class="sub">Build guide: circuits, single-line diagram, wiring, component placement, assembly, and the simulation in the project simulator, KiCad and GNU Octave</div>
     <div class="meta">
       Major project · Department of EEE<br>
       BVRIT HYDERABAD College of Engineering for Women<br>
@@ -289,7 +320,8 @@ def build_html(snap):
 <li>Circuit diagrams</li><li>ESP32 pin map</li><li>Components</li><li>Wiring between the units</li>
 <li>Board A: cell-tap sensing</li><li>Board B: ESP32, temperatures, current, relays</li>
 <li>Module pin orders</li><li>Enclosure layout</li><li>Assembly, step by step</li>
-<li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li><li>Safety rules</li>
+<li>Checks before power</li><li>Bring-up, gate by gate</li><li>The simulation</li>
+<li>Circuit and model simulation in KiCad and GNU Octave</li><li>Safety rules</li>
 </ol>
 <h3>1. How to use this guide</h3>
 <ul>
@@ -531,7 +563,48 @@ test with the gate's own pass criteria.</p>
 </section>
 
 <section>
-<h2>16. Safety rules</h2>
+<h2>16. Circuit and model simulation in KiCad and GNU Octave</h2>
+<p>Three tools check three different parts of the design, and each one is free and open source:</p>
+{table(["Tool", "What it checks", "Where"], [
+    ["<b>KiCad 10</b> with its simulator, <b>ngspice</b>", "The analog circuits: the cell-tap dividers and filters, the NTC dividers, the current shunt, and the cell's thermal model drawn as an electrical circuit", "<code>kicad/</code>"],
+    ["<b>GNU Octave</b> (the same files run in MATLAB)", "The predictive model: the thermal model and the Kalman observer, written a second time from the firmware and compared with it sample by sample", "<code>matlab/</code>"],
+    ["The project's simulator (section 15)", "The complete firmware: every limit, fault and gate scenario, on a simulated pack", "<code>host/</code>"],
+])}
+<p>The KiCad sheets open in KiCad 10: open the project, then <b>Inspect → Simulator</b> and run the analysis written on the
+sheet. <code>python3 kicad/run_sims.py</code> runs all of them from the command line and checks the results;
+the Octave scripts run with <code>octave --no-gui --eval "crosscheck"</code> in <code>matlab/</code>. KiCad's
+electrical rules check finds no violation on any sheet. All results in this section are simulation results with the
+part values on the sheets; the gates measure the real circuits.</p>
+<h3>Simulation checks</h3>
+{kicad_checks_table(kres)}
+</section>
+
+<section>
+<h3>16.1 Cell taps (board A)</h3>
+{fig("figures/kicad-cell-taps.svg", "Figure 21. KiCad sheet of the four cell-tap channels. V1–V4 are the cells at full charge; R13–R16 are the tap resistors at the pack. I1 stands for leakage at an ADC input.", "kicad")}
+{fig("figures/sim-taps-leakage.svg", "Figure 22. Leakage at an ADC input (from the clamp diode or the ADC itself) against the error in the cell reading. Calibration removes a steady leakage, but not one that changes with temperature, so the clamp must leak well below the 49 nA that would use the whole Gate 1 limit.", "chart")}
+{fig("figures/sim-taps-ac.svg", f"Figure 23. Frequency response from a tap to its ADC input. The filter passes the cell voltage and removes noise above about {kr['cell-taps']['f3db_hz']:.0f} Hz; after a step the input settles to 16-bit accuracy in {kr['cell-taps']['settle_ms_16bit']:.0f} ms, less than one 200 ms sample." if kr else "Figure 23.", "chart")}
+<h3>16.2 NTC divider (board B)</h3>
+{fig("figures/kicad-ntc-divider.svg", "Figure 24. KiCad sheet of one NTC divider. TH1 follows the B3950 equation at the simulation temperature, which the DC sweep steps from −20 to 100 °C.", "kicad")}
+{fig("figures/sim-ntc.svg", "Figure 25. Voltage at the ESP32 ADC against the NTC's temperature. It stays in the ADC's accurate range from about 3 °C to above 100 °C; at the 45 °C and 55 °C trips it is 1.00 V and 0.76 V.", "chart")}
+<h3>16.3 Current sense</h3>
+{fig("figures/kicad-current-sense.svg", "Figure 26. KiCad sheet of the 5 mΩ shunt and the INA226 inputs. R2 is the module's own R100 shunt, which is removed; it is excluded from the simulation.", "kicad")}
+{fig("figures/sim-current.svg", f"Figure 27. Shunt voltage from 5 A of charge to 5 A of discharge: {kr['current-sense']['sense_mv_5a']:.1f} mV at 5 A, inside the INA226's ±81.92 mV. With R100 left in place the reading is {abs(kr['current-sense']['r100_error_pct']):.2f} % low." if kr else "Figure 27.", "chart")}
+<h3>16.4 The thermal model of a cell</h3>
+{fig("figures/kicad-thermal-model.svg", "Figure 28. The two-node thermal model of section 9.1 as an electrical circuit: 1 V stands for 1 °C, 1 A for 1 W, 1 F for 1 J/°C and 1 Ω for 1 °C/W. I1 is 1 W of heat in the core from t = 10 s.", "kicad")}
+{fig("figures/sim-thermal.svg", "Figure 29. Core and surface temperatures after 1 W starts in the core. The lines are ngspice; the dots are the Octave script, which solves the same model a second way. The two agree to 0.0002 °C. The cell needs more than an hour to settle, which is why the supervisor estimates the heat instead of waiting for a fixed limit.", "chart")}
+<h3>16.5 The observer in GNU Octave</h3>
+<p><code>matlab/thermal_observer.m</code> is a copy of the firmware's Kalman observer (section 9.2), written in the
+<code>.m</code> language. <code>crosscheck</code> runs simulator scenarios with a log of every sample, gives the logged
+current and temperatures to the Octave observer, and compares its core temperature and abnormal heat with the
+firmware's. The limits are 0.01 °C and 0.002 W; the differences come from the rounding of the log.</p>
+{octave_table(oc)}
+{fig("matlab/crosscheck_load_defect.png", "Figure 30. The Octave observer (solid) against the firmware (dashed) on the cell-defect scenario. Top: core temperature and abnormal heat of each cell. Bottom: the differences, in thousandths of a degree and thousandths of a watt.", "chart")}
+{fig("matlab/thermal_step.png", "Figure 31. The step response drawn by Octave, with the steady-state temperatures.", "chart")}
+</section>
+
+<section>
+<h2>17. Safety rules</h2>
 <div class="safety">
 <ul>
 <li>No lithium cell is connected before Gate 3. The first live power-up and the first charge are never done alone.</li>

@@ -1,9 +1,10 @@
 // bms_sim: runs the supervisor against the simulated pack.
 //
 //   bms_sim list                       the scenarios and the gate each one rehearses
-//   bms_sim run NAME|all [--csv FILE] [--json FILE] [--report FILE] [--quiet]
+//   bms_sim run NAME|all [--csv FILE] [--csv-all] [--json FILE] [--report FILE] [--quiet]
 //                    [--thermal CC CS RC RU1 RU2 RU3 RU4]
 //                                      runs scenarios and checks them; exit code 1 on a failure.
+//                                      --csv logs one row a second; with --csv-all, every sample.
 //                                      --report writes every result and check as JSON.
 //                                      --thermal replaces the model with fitted values, as printed
 //                                      by tools/fit_thermal.py (the Gate 9 to Gate 11 path)
@@ -37,7 +38,7 @@ namespace {
 int usage() {
   std::fprintf(stderr,
                "usage: bms_sim list\n"
-               "       bms_sim run NAME|all [--csv FILE] [--json FILE] [--report FILE] [--quiet]\n"
+               "       bms_sim run NAME|all [--csv FILE] [--csv-all] [--json FILE] [--report FILE] [--quiet]\n"
                "                    [--thermal C_CORE C_SURF R_CORE RU1 RU2 RU3 RU4]\n"
                "       bms_sim live [--speed N]\n");
   return 2;
@@ -69,6 +70,7 @@ int cmd_run(int argc, char** argv) {
   std::string name = argv[0], csv_path, json_path, report_path;
   bool quiet = false;
   bool thermal = false;
+  bool csv_all = false;
   bms::ThermalParams fitted;
   for (int i = 1; i < argc; ++i) {
     if (!std::strcmp(argv[i], "--thermal") && i + 7 < argc) {
@@ -85,6 +87,8 @@ int cmd_run(int argc, char** argv) {
       json_path = argv[++i];
     } else if (!std::strcmp(argv[i], "--report") && i + 1 < argc) {
       report_path = argv[++i];
+    } else if (!std::strcmp(argv[i], "--csv-all")) {
+      csv_all = true;
     } else if (!std::strcmp(argv[i], "--quiet")) {
       quiet = true;
     } else {
@@ -124,6 +128,7 @@ int cmd_run(int argc, char** argv) {
       bms::write_csv_header(header, sizeof header);
       std::fprintf(csv, "%s\n", header);
       b.csv = csv;
+      if (csv_all) b.csv_every = 1;
     }
     sim::Report r;
     sc->run(b, r);

@@ -30,7 +30,10 @@ designed: the prototype is modules on perfboard.
   change to the boards, the figures or the dashboard, rebuild the build guide
   (`python3 docs/build-guide/build_guide.py`) and look at the pages before committing
   (ESP-IDF environment: `export IDF_TOOLS_PATH=$PWD/.tools/espressif && . .tools/esp-idf/export.sh`).
-  Firmware changes must build without warnings.
+  Firmware changes must build without warnings. After a change to `kicad/`, run
+  `python3 kicad/make_schematics.py` and `python3 kicad/run_sims.py`, and keep KiCad's ERC at zero
+  violations. After a change to the observer (`thermal.*`) or to `matlab/`, run `crosscheck` in
+  Octave (`matlab/README.md`); the Octave copy must still agree with the firmware.
 - **Git:** commit to `main`. Messages are short and plain (`firmware: ...`, `docs: ...`). Every
   commit ends with the trailer
   `Co-authored-by: muskan sultana <335379570+sultanamuskan@users.noreply.github.com>`. **No
@@ -39,8 +42,11 @@ designed: the prototype is modules on perfboard.
   (public); ask before pushing.
 - **Keep out of git:** company documents (such as the purchase indent), other students' documents
   or names, and copyrighted papers (such as the base paper's PDF).
-- **This computer:** no sudo, apt or system-wide installs. ESP-IDF lives in `.tools/` and Python
-  packages in `.venv/`, both git-ignored. Anything else: write the command and the reason, and ask.
+- **This computer:** no sudo, apt or system-wide installs. ESP-IDF lives in `.tools/`, ngspice and
+  GNU Octave in `.tools/sim/` (micromamba; start Octave with `micromamba run -p .tools/sim octave`),
+  and Python packages in `.venv/`, all git-ignored. KiCad 10 is the user's Flatpak
+  (`flatpak run --command=kicad-cli org.kicad.KiCad`). Anything else: write the command and the
+  reason, and ask.
 - **Writing:** every tracked file (documents, comments, commit messages, generated output) is
   written as the developer speaking to the users: never as an AI, never addressed to the
   developer, and without change history ("now", "at first"). Notes for the developer go in the
@@ -63,3 +69,5 @@ designed: the prototype is modules on perfboard.
 | `tools/` | calibration, thermal fit, OCV table, serial logger, simulator server; tests in `tools/tests/` |
 | `docs/` | `wiring.md`, `firmware.md`, `bring-up.md`, `simulator.md`, `gate-records.md`, `architecture/` |
 | `docs/build-guide/` | `boards.py` (both perfboards as checked data), `figures.py`, `build_guide.py` (HTML and PDF), `snapshots.py` (browser pictures of the demonstrations) |
+| `kicad/` | KiCad 10 simulation sheets in `sim/`, written by `make_schematics.py` (with `sch.py`); `run_sims.py` exports them with kicad-cli, runs ngspice and checks the results |
+| `matlab/` | the thermal model and Kalman observer in GNU Octave / MATLAB; `crosscheck.m` compares them with the firmware on the simulator's per-sample logs (`bms_sim run NAME --csv FILE --csv-all`) |

@@ -1,0 +1,157 @@
+{
+  "results": {
+    "cell-taps": {
+      "adc_v_entry_10k": [
+        0.5939394,
+        1.187879,
+        1.781818,
+        2.375758
+      ],
+      "gain_entry_10k": [
+        7.071428499271138,
+        7.071427308673695,
+        7.07142929300299,
+        7.071427308673695
+      ],
+      "adc_v_entry_1k": [
+        0.6077519,
+        1.215504,
+        1.823256,
+        2.431008
+      ],
+      "gain_entry_1k": [
+        6.910714717633955,
+        6.910713580539431,
+        6.910713580539431,
+        6.910713580539431
+      ],
+      "err_mv_per_10na": 4.107155695152248,
+      "leak_for_20mv_na": 48.69564967860206,
+      "f3db_hz": 27.402660578781887,
+      "tau_ms": 5.808010599347801,
+      "settle_ms_16bit": 64.4128987456033
+    },
+    "ntc-divider": {
+      "v_25c": 1.65,
+      "usable_from_c": 2.9389295690979846,
+      "usable_to_c": null,
+      "mv_per_c": {
+        "25": 36.65767000000009,
+        "45": 27.199340000000127,
+        "55": 21.40503100000002
+      },
+      "ntc_mw_25c": 0.27225
+    },
+    "current-sense": {
+      "sense_mv_5a": 25.0,
+      "shunt_w_5a": 0.125,
+      "r100_error_pct": -4.761904799999996,
+      "fs_mv": 81.9175
+    },
+    "thermal-model": {
+      "at": {
+        "60": [
+          26.342761244724,
+          26.068197983828
+        ],
+        "300": [
+          31.105270311316,
+          30.562528904644
+        ],
+        "1200": [
+          43.251475599772,
+          42.025191125424
+        ],
+        "3600": [
+          54.4587818,
+          52.6017921
+        ]
+      },
+      "tau_s": [
+        1421.5585609134025,
+        8.441439086610458
+      ],
+      "steady_core_c": 57.0,
+      "octave_max_diff_c": 0.00019323434799645156
+    }
+  },
+  "checks": [
+    {
+      "circuit": "cell taps",
+      "check": "highest ADC input at 4 x 4.2 V",
+      "value": 2.431,
+      "limit": "< 3.0 V (Gate 1 stop)",
+      "pass": true
+    },
+    {
+      "circuit": "cell taps",
+      "check": "tap error per 10 nA of leakage",
+      "value": 4.11,
+      "limit": "mV (for the TBD clamp)",
+      "pass": true
+    },
+    {
+      "circuit": "cell taps",
+      "check": "settling to 16 bits after a step",
+      "value": 64.4,
+      "limit": "< 200 ms (one 5 Hz sample)",
+      "pass": true
+    },
+    {
+      "circuit": "NTC",
+      "check": "divider at 25 \u00b0C",
+      "value": 1.65,
+      "limit": "1.65 V (half of 3.3 V)",
+      "pass": true
+    },
+    {
+      "circuit": "NTC",
+      "check": "ADC voltage at the charge trip (45 \u00b0C)",
+      "value": 1.0,
+      "limit": "0.15-2.45 V (ESP32 ADC1, 12 dB)",
+      "pass": true
+    },
+    {
+      "circuit": "NTC",
+      "check": "ADC voltage at the discharge trip (55 \u00b0C)",
+      "value": 0.7573,
+      "limit": "0.15-2.45 V (ESP32 ADC1, 12 dB)",
+      "pass": true
+    },
+    {
+      "circuit": "current",
+      "check": "shunt voltage at 5 A",
+      "value": 25.0,
+      "limit": "within +/-81.92 mV (INA226)",
+      "pass": true
+    },
+    {
+      "circuit": "current",
+      "check": "sign: discharge reads positive",
+      "value": 25.0,
+      "limit": "> 0",
+      "pass": true
+    },
+    {
+      "circuit": "current",
+      "check": "error if the module's R100 is left in place",
+      "value": -4.76,
+      "limit": "% (must be removed; Gate 1 allows 2 %)",
+      "pass": true
+    },
+    {
+      "circuit": "thermal",
+      "check": "core rise after 1 h of 1 W",
+      "value": 29.459,
+      "limit": "approaches 32 \u00b0C (R_core + R_air)",
+      "pass": true
+    },
+    {
+      "circuit": "thermal",
+      "check": "ngspice against Octave, largest difference",
+      "value": 0.0002,
+      "limit": "< 0.01 \u00b0C",
+      "pass": true
+    }
+  ]
+}

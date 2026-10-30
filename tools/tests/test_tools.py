@@ -3,7 +3,8 @@
     .venv/bin/python -m unittest discover -s tools/tests
 
 The fit and server tests need the PC build (build/host/bms_sim); the fit test also needs numpy
-and scipy. Each test is skipped, with the reason, when its need is missing.
+and scipy. The KiCad test needs kicad-cli and ngspice (see kicad/README.md). Each test is
+skipped, with the reason, when its need is missing.
 """
 
 import contextlib
@@ -22,10 +23,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 sys.path.insert(0, str(ROOT / "docs" / "build-guide"))
+sys.path.insert(0, str(ROOT / "kicad"))
 
 import boards  # noqa: E402
 import calibrate  # noqa: E402
 import ocv_table  # noqa: E402
+import run_sims  # noqa: E402
 import sim_server  # noqa: E402
 
 SIM = sim_server.default_sim()
@@ -157,6 +160,12 @@ class SimServerTest(unittest.TestCase):
         finally:
             proc.terminate()
             proc.wait(timeout=5)
+
+
+@unittest.skipUnless(run_sims.kicad_cli() and run_sims.ngspice(), "kicad-cli or ngspice is not installed")
+class KicadSimTest(unittest.TestCase):
+    def test_every_schematic_simulates_and_passes_its_checks(self):
+        self.assertEqual(quiet(run_sims.main, ["--check"]), 0)
 
 
 if __name__ == "__main__":
