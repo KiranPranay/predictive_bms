@@ -89,15 +89,37 @@ jobs:
           path: installers
           key: installers-octave${{ env.OCTAVE_VERSION }}-kicad${{ env.KICAD_VERSION }}-scilab${{ env.SCILAB_VERSION }}
 
-      - name: "Test: the Octave scripts in GNU Octave for Windows"
+      - name: "Test: the Octave scripts in GNU Octave for Windows (batch)"
         run: |
           7z x installers/octave.7z -oC:\octave -y | Out-Null
-          $cli = Get-ChildItem C:\octave -Recurse -Filter octave-cli.exe | Select-Object -First 1
+          $cli = Get-ChildItem C:\octave -Recurse -Filter octave-cli.exe | Where-Object FullName -like '*mingw64\bin\*' | Select-Object -First 1
           Write-Output "Octave: $($cli.FullName)"
           $dir = (Resolve-Path "dist/PredictiveBMS/3 Octave model check").Path
           & $cli.FullName --no-gui --eval "cd('$dir'); thermal_step(); r = crosscheck(); if ~all([r.pass]), exit(1); end"
           if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: "Test: the Octave scripts in the Octave window, as the student runs them"
+        timeout-minutes: 15
+        run: |
+          $bin = (Get-ChildItem C:\octave -Recurse -Filter octave-gui.exe | Where-Object FullName -like '*mingw64\bin\*' | Select-Object -First 1).DirectoryName
+          # A settings file skips the welcome wizard that the first start of the window shows.
+          foreach ($d in "$env:APPDATA\octave", "$env:LOCALAPPDATA\octave") {
+            New-Item -ItemType Directory -Force $d | Out-Null
+            Set-Content -Path "$d\qt-settings" -Value "[General]"
+          }
+          $dir = (Resolve-Path "dist/PredictiveBMS/3 Octave model check").Path
+          Remove-Item "$dir/results" -Recurse -Force -ErrorAction SilentlyContinue
+          $eval = "cd('$dir'); try, thermal_step(); r = crosscheck({'load_defect'}); ok = all([r.pass]) && isguirunning(); catch e, disp(e.message); ok = false; end; fid = fopen('gui-check.txt', 'w'); fprintf(fid, '%d', ok); fclose(fid); exit(0);"
+          $p = Start-Process -FilePath "$bin\octave-gui.exe" -ArgumentList @('--gui', '--eval', "`"$eval`"") -PassThru
+          if (-not $p.WaitForExit(600000)) { Stop-Process -Id $p.Id -Force; throw "the Octave window did not finish within 10 minutes" }
           Get-ChildItem "$dir/results" | Format-Table Name, Length
+          $ok = Get-Content "$dir/gui-check.txt" -ErrorAction SilentlyContinue
+          Write-Output "check in the Octave window: $ok"
+          if ($ok -ne '1') { throw "the scripts did not pass in the Octave window" }
+          foreach ($f in 'thermal_step.png', 'crosscheck_load_defect.png') {
+            if (-not (Test-Path "$dir/results/$f")) { throw "$f was not saved in the Octave window" }
+          }
+          Remove-Item "$dir/gui-check.txt"
 
       - name: "Test: the KiCad projects in KiCad for Windows"
         run: |
