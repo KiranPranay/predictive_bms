@@ -17,7 +17,7 @@ env:
   PYTHON_EMBED: "3.12.10"
   OCTAVE_VERSION: "10.3.0"
   KICAD_VERSION: "10.0.7"
-  SCILAB_VERSION: "2026.0.1"
+  SCILAB_VERSION: "2027.0.0"   # the version the Xcos models are made with
   PYTHONUTF8: "1"
 
 jobs:
@@ -130,7 +130,7 @@ jobs:
         run: |
           Start-Process installers/scilab.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\Scilab' -Wait
           $scilex = "C:\Scilab\bin\Scilex.exe"
-          & $scilex -nw -nb -quit -e "loadXcosLibs(); loadScicos(); d = listfiles(SCI + '/modules/xcos/demos/*.zcos'); importXcosDiagram(d(1)); disp(getversion()); disp(d(1)); exit(0);"
+          & $scilex -nw -nb -quit -f .github/scripts/scilab_smoke.sce
           if ($LASTEXITCODE -ne 0) { exit 1 }
           if (Test-Path scilab/check_models.sce) {
             & $scilex -nw -nb -quit -f scilab/check_models.sce

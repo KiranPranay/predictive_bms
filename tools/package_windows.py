@@ -42,6 +42,7 @@ if not exist "tools\demo.py" goto missing
 if not exist "dashboard\index.html" goto missing
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
+set PYTHONUNBUFFERED=1
 echo.
 echo   Predictive BMS - demonstration on a simulated battery pack
 echo   ------------------------------------------------------------

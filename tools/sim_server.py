@@ -198,7 +198,7 @@ def main(argv=None):
     server = http.server.ThreadingHTTPServer((args.host, args.port),
                                              make_handler(sim, Verification(exe)))
     url = f"http://{args.host}:{server.server_port}/"
-    print(f"Dashboard: {url}  (simulated pack, x{args.speed:g}). Ctrl-C stops it.")
+    print(f"Dashboard: {url}  (simulated pack, x{args.speed:g}). Ctrl-C stops it.", flush=True)
     if args.open:
         threading.Timer(1.0, webbrowser.open, args=(url,)).start()
     try:

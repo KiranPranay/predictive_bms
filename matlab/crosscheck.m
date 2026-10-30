@@ -138,8 +138,10 @@ if exist(csv_target(cmd), 'file')
   delete(csv_target(cmd));   % never compare with an old log
 end
 cmd = [cmd ' 2>&1'];
-if ispc
-  cmd = ['"' cmd '"'];   % cmd.exe removes the outer pair of quotes
+if ispc && ~exist('OCTAVE_VERSION', 'builtin')
+  % cmd.exe removes the outer pair of quotes. MATLAB passes the line as it is, so it needs one
+  % more pair; Octave for Windows adds that pair itself.
+  cmd = ['"' cmd '"'];
 end
 [~, out] = system(cmd);
 end
