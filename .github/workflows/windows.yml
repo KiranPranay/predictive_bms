@@ -142,17 +142,13 @@ jobs:
 
       - name: "Test: the KiCad projects in KiCad for Windows"
         run: |
-          $p = Start-Process installers/kicad.exe -ArgumentList '/S', '/D=C:\KiCad' -Wait -PassThru
-          Write-Output "KiCad installer exit code: $($p.ExitCode)"
-          # The installer starts a second copy of itself with administrator rights and returns at
-          # once (exit code 666660); the installation goes on in that copy. Wait for it to end.
-          $deadline = (Get-Date).AddMinutes(25)
-          do {
-            Start-Sleep 15
-            $busy = Get-Process -Name kicad -ErrorAction SilentlyContinue
-            $cli = Get-ChildItem 'C:\KiCad', 'C:\Program Files\KiCad', "$env:LOCALAPPDATA\Programs\KiCad" -Recurse -Filter kicad-cli.exe -ErrorAction SilentlyContinue | Select-Object -First 1
-          } while (($busy -or -not $cli) -and (Get-Date) -lt $deadline)
-          if (-not $cli) { throw "kicad-cli.exe was not installed" }
+          # The KiCad installer hands over to a second, elevated copy of itself (exit code
+          # 666660), which never finishes in a silent run on this machine. Its files are
+          # unpacked with 7-Zip instead: the same kicad-cli.exe and ngspice library as an
+          # installed KiCad. On the user's PC the normal installer is used.
+          7z x installers/kicad.exe -oC:\KiCad -y | Out-Null
+          $cli = Get-ChildItem C:\KiCad -Recurse -Filter kicad-cli.exe | Select-Object -First 1
+          if (-not $cli) { Get-ChildItem C:\KiCad | Format-Table Name; throw "kicad-cli.exe is not in the installer" }
           Write-Output "kicad-cli: $($cli.FullName)"
           python .github/scripts/kicad_check.py $cli.Directory.Parent.FullName "dist/PredictiveBMS/2 KiCad circuits"
 
