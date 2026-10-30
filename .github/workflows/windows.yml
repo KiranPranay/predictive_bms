@@ -109,10 +109,15 @@ jobs:
           }
           $dir = (Resolve-Path "dist/PredictiveBMS/3 Octave model check").Path
           Remove-Item "$dir/results" -Recurse -Force -ErrorAction SilentlyContinue
-          $eval = "cd('$dir'); try, thermal_step(); r = crosscheck({'load_defect'}); ok = all([r.pass]) && isguirunning(); catch e, disp(e.message); ok = false; end; fid = fopen('gui-check.txt', 'w'); fprintf(fid, '%d', ok); fclose(fid); exit(0);"
-          $p = Start-Process -FilePath "$bin\octave-gui.exe" -ArgumentList @('--gui', '--eval', "`"$eval`"") -PassThru
+          Get-ChildItem $bin -Filter 'octave*.exe' | Format-Table Name, Length
+          $eval = "cd('$dir'); diary('gui-diary.txt'); try, thermal_step(); r = crosscheck({'load_defect'}); ok = all([r.pass]) && isguirunning(); catch e, disp(e.message); ok = false; end; diary('off'); fid = fopen('gui-check.txt', 'w'); fprintf(fid, '%d', ok); fclose(fid); exit(0);"
+          $p = Start-Process -FilePath "$bin\octave-gui.exe" -ArgumentList @('--gui', '--eval', "`"$eval`"") -PassThru `
+                 -RedirectStandardOutput "$env:RUNNER_TEMP\gui-out.txt" -RedirectStandardError "$env:RUNNER_TEMP\gui-err.txt"
           if (-not $p.WaitForExit(600000)) { Stop-Process -Id $p.Id -Force; throw "the Octave window did not finish within 10 minutes" }
-          Get-ChildItem "$dir/results" | Format-Table Name, Length
+          Write-Output "octave-gui exit code: $($p.ExitCode)"
+          Get-Content "$env:RUNNER_TEMP\gui-out.txt", "$env:RUNNER_TEMP\gui-err.txt" -ErrorAction SilentlyContinue
+          Get-Content "$dir/gui-diary.txt" -ErrorAction SilentlyContinue
+          Get-ChildItem "$dir/results" -ErrorAction SilentlyContinue | Format-Table Name, Length
           $ok = Get-Content "$dir/gui-check.txt" -ErrorAction SilentlyContinue
           Write-Output "check in the Octave window: $ok"
           if ($ok -ne '1') { throw "the scripts did not pass in the Octave window" }

@@ -88,8 +88,11 @@ def main():
     # KiCad's first start copies the default symbol library table; do the same here.
     table = pathlib.Path(os.environ["APPDATA"]) / "kicad" / "10.0" / "sym-lib-table"
     if not table.exists():
-        table.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(kicad / "share" / "kicad" / "template" / "sym-lib-table", table)
+        templates = sorted(kicad.rglob("template/sym-lib-table"))
+        print("default symbol library table:", templates[0] if templates else "not found")
+        if templates:
+            table.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(templates[0], table)
     spice = Ngspice(dlls[0])
     tmp = pathlib.Path(os.environ.get("RUNNER_TEMP", "."))
     ok = True
