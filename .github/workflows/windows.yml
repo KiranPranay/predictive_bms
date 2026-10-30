@@ -116,10 +116,14 @@ jobs:
           Remove-Item "$dir/results" -Recurse -Force -ErrorAction SilentlyContinue
           Get-ChildItem $bin -Filter 'octave*.exe' | Format-Table Name, Length
           $eval = "cd('$dir'); diary('gui-diary.txt'); try, thermal_step(); r = crosscheck({'load_defect'}); ok = all([r.pass]) && isguirunning(); catch e, disp(e.message); ok = false; end; diary('off'); fid = fopen('gui-check.txt', 'w'); fprintf(fid, '%d', ok); fclose(fid); exit(0);"
-          $p = Start-Process -FilePath "$bin\octave-gui.exe" -ArgumentList @('--gui', '--eval', "`"$eval`"") -PassThru `
+          # octave.exe is the launcher that the Start-menu shortcut runs; it sets up Qt for the window.
+          $p = Start-Process -FilePath "$bin\octave.exe" -ArgumentList @('--gui', '--eval', "`"$eval`"") -PassThru `
                  -RedirectStandardOutput "$env:RUNNER_TEMP\gui-out.txt" -RedirectStandardError "$env:RUNNER_TEMP\gui-err.txt"
           if (-not $p.WaitForExit(600000)) { Stop-Process -Id $p.Id -Force; throw "the Octave window did not finish within 10 minutes" }
-          Write-Output "octave-gui exit code: $($p.ExitCode)"
+          # The launcher may return before the window closes: wait for the window too.
+          $deadline = (Get-Date).AddMinutes(10)
+          while ((Get-Process octave-gui -ErrorAction SilentlyContinue) -and (Get-Date) -lt $deadline) { Start-Sleep 5 }
+          Write-Output "octave exit code: $($p.ExitCode)"
           Get-Content "$env:RUNNER_TEMP\gui-out.txt", "$env:RUNNER_TEMP\gui-err.txt" -ErrorAction SilentlyContinue
           Get-Content "$dir/gui-diary.txt" -ErrorAction SilentlyContinue
           Get-ChildItem "$dir/results" -ErrorAction SilentlyContinue | Format-Table Name, Length
@@ -133,8 +137,12 @@ jobs:
 
       - name: "Test: the KiCad projects in KiCad for Windows"
         run: |
-          Start-Process installers/kicad.exe -ArgumentList '/S' -Wait
-          python .github/scripts/kicad_check.py "C:/Program Files/KiCad/10.0" "dist/PredictiveBMS/2 KiCad circuits"
+          $p = Start-Process installers/kicad.exe -ArgumentList '/S', '/D=C:\KiCad' -Wait -PassThru
+          Write-Output "KiCad installer exit code: $($p.ExitCode)"
+          $cli = Get-ChildItem 'C:\KiCad', 'C:\Program Files\KiCad', "$env:LOCALAPPDATA\Programs\KiCad" -Recurse -Filter kicad-cli.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $cli) { throw "kicad-cli.exe was not installed" }
+          Write-Output "kicad-cli: $($cli.FullName)"
+          python .github/scripts/kicad_check.py $cli.Directory.Parent.FullName "dist/PredictiveBMS/2 KiCad circuits"
 
       - name: "Test: Scilab and Xcos for Windows"
         run: |
