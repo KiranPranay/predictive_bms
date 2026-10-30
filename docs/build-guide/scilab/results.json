@@ -1,0 +1,52 @@
+{
+  "predictive_trip_s": 717,
+  "fixed_trip_s": 2518,
+  "surface_at_predictive_c": 30.914067,
+  "surface_at_fixed_c": 55.00215,
+  "fault_start_s": 600,
+  "model_a_max_diff_c": 0.0037133,
+  "checks": [
+    {
+      "check": "model A: largest difference from ngspice and Octave (degC)",
+      "value": 0.0037,
+      "limit": "< 0.01",
+      "pass": true
+    },
+    {
+      "check": "model A: core temperature 1 h after the step (degC)",
+      "value": 54.46,
+      "limit": "54.46 in ngspice",
+      "pass": true
+    },
+    {
+      "check": "model B: largest estimated abnormal heat before the fault (W)",
+      "value": 0,
+      "limit": "< 0.375, the Warning level: no false alarm",
+      "pass": true
+    },
+    {
+      "check": "model B: predictive trip, seconds after the fault starts",
+      "value": 117,
+      "limit": "within 5 minutes",
+      "pass": true
+    },
+    {
+      "check": "model B: surface temperature at the predictive trip (degC)",
+      "value": 30.9,
+      "limit": "below 45, the charge trip",
+      "pass": true
+    },
+    {
+      "check": "model B: fixed-limit trip, seconds after the fault starts",
+      "value": 1918,
+      "limit": "later than the predictive trip",
+      "pass": true
+    },
+    {
+      "check": "model B: estimated abnormal heat at the end (W)",
+      "value": 1,
+      "limit": "1 W was added",
+      "pass": true
+    }
+  ]
+}
