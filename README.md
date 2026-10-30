@@ -24,6 +24,8 @@ The prototype is wired from modules on perfboard ([docs/wiring.md](docs/wiring.m
 | Build guide | one PDF with the single-line diagram, circuit diagrams, wiring, both perfboard layouts hole by hole, assembly steps and checks, and snapshots of the simulation | `docs/build-guide/Build-Guide.pdf` |
 | Circuit simulation | the analog circuits (cell taps, NTC dividers, current shunt) and the cell's thermal model as KiCad 10 schematics, simulated with ngspice and checked | `kicad/` |
 | Model check | the thermal model and the Kalman observer written a second time in GNU Octave (MATLAB-compatible) and compared with the firmware sample by sample | `matlab/` |
+| Block diagrams | the thermal model and the predictive layer as Scilab Xcos models (the free tool like Simulink), checked against ngspice and Octave | `scilab/` |
+| Student documents | a step-by-step presentation guide and viva notes in simple English | `docs/student/` |
 | Documents | wiring, firmware, gate-by-gate bring-up, simulator results, gate record sheets | `docs/` |
 
 ## Where the project stands
@@ -36,6 +38,7 @@ The prototype is wired from modules on perfboard ([docs/wiring.md](docs/wiring.m
 | Build guide | complete: circuits, single-line diagram, wiring, both perfboards hole by hole, assembly steps and checks, simulation snapshots, KiCad and Octave results |
 | Circuit simulation (KiCad, ngspice) | four sheets; every check passes; KiCad's electrical rules check finds no violation |
 | Model check (GNU Octave) | the Octave observer agrees with the firmware to 0.007 °C and 0.0013 W on four scenarios |
+| Block diagrams (Scilab Xcos) | two models; the predictive trip comes 117 s after a 1 W fault, a fixed 55 °C limit 32 minutes after it |
 | Hardware | not built: next is Gate 0 in [docs/bring-up.md](docs/bring-up.md) |
 | Thermal parameters, cell resistances, OCV table | estimates until Gates 4, 9 and 10 measure them; the thermal layer stays off until then (architecture 9.9) |
 
@@ -108,6 +111,10 @@ python3 kicad/run_sims.py                                 # every KiCad sheet: s
 To simulate one circuit in KiCad itself, open its project in `kicad/sim/`, then **Inspect →
 Simulator**, and run the analysis written on the sheet.
 
+The Xcos models in `scilab/` open in Scilab 2027.0.0 with a double-click; the Start button runs
+them ([scilab/README.md](scilab/README.md)). `scilab-cli -nb -quit -f scilab/check_models.sce`
+checks both without a window.
+
 ### 5. Bench tools
 
 ```bash
@@ -133,6 +140,7 @@ docs/                          wiring, firmware, bring-up, simulator, gate recor
 docs/build-guide/              the build guide PDF, its figures, and the scripts that make them
 kicad/                         KiCad 10 simulation sheets (sim/) and the scripts that make and run them
 matlab/                        the thermal model and observer in GNU Octave / MATLAB, and the cross-check
+scilab/                        the Xcos models (Scilab), and the scripts that make and check them
 firmware/
   CMakeLists.txt, sdkconfig.*  the ESP-IDF project; sdkconfig.bench adds bench mode
   main/                        drivers, tasks, console, Wi-Fi and web server

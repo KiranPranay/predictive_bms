@@ -276,8 +276,8 @@ pass rules.</li>
 </ul>
 <table class=""><thead><tr><th>Scenario</th><th>Largest core-temperature difference</th><th>Largest abnormal-heat difference</th></tr></thead><tbody><tr><td><span class='key'>discharge_steps</span></td><td>0.0029 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>heat_no_current</span></td><td>0.0066 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>load_defect</span></td><td>0.0026 °C</td><td>0.0013 W</td></tr><tr><td><span class='key'>soft_short</span></td><td>0.0040 °C</td><td>0.0010 W</td></tr></tbody></table>
 <ul>
-<li><b>Xcos:</b> <span class="fill">[[XCOS-A]]</span></li>
-<li><b>Xcos:</b> <span class="fill">[[XCOS-B]]</span></li>
+<li><b>Xcos:</b> the heat model built from blocks agrees with ngspice and Octave within 0.004 °C.</li>
+<li><b>Xcos:</b> with 1 W of abnormal heat, the predictive trip comes 117 s after the fault starts (surface at 30.9 °C). A fixed 55 °C limit trips 32 minutes after it starts. The estimate settles at the true 1.00 W, and stays at zero before the fault: no false alarm.</li>
 </ul>
 <h3>What is not done yet</h3>
 <ul>

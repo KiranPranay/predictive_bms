@@ -85,7 +85,7 @@ values and the real controller program. Always say "in the simulation" when you 
 <h2>1. What to install</h2>
 <p>All the programs are free. Install them the day before, when you have good internet. They are large downloads.
 During each installation, keep the default choices and click <b>Next</b> until it finishes.</p>
-<table class=""><thead><tr><th>Program</th><th>Where to get it</th><th>What it is for</th></tr></thead><tbody><tr><td><b>KiCad 10</b></td><td><b>kicad.org</b> → Download → Windows. Take the newest 10.0 version.</td><td>The circuit diagrams, and their simulation (KiCad has a circuit simulator inside, called ngspice).</td></tr><tr><td><b>GNU Octave 10.3.0</b></td><td><b>octave.org</b> → Download → Windows. Take the installer for version 10.3.0 (its file name ends with <span class='key'>-w64-installer.exe</span>).</td><td>The heat model and its estimator, written as MATLAB-style files. Octave is the free program that runs MATLAB files.</td></tr><tr><td><b>Scilab 2026.0.1</b></td><td><b>scilab.org</b> → Download → Windows 64-bit installer for 2026.0.1.</td><td>Xcos, the block-diagram tool inside Scilab. It is the free tool like Simulink.</td></tr><tr><td>Nothing</td><td>—</td><td>The demonstration dashboard. It runs from the project folder and opens in your normal web browser (Edge or Chrome).</td></tr></tbody></table>
+<table class=""><thead><tr><th>Program</th><th>Where to get it</th><th>What it is for</th></tr></thead><tbody><tr><td><b>KiCad 10</b></td><td><b>kicad.org</b> → Download → Windows. Take the newest 10.0 version.</td><td>The circuit diagrams, and their simulation (KiCad has a circuit simulator inside, called ngspice).</td></tr><tr><td><b>GNU Octave 10.3.0</b></td><td><b>octave.org</b> → Download → Windows. Take the installer for version 10.3.0 (its file name ends with <span class='key'>-w64-installer.exe</span>).</td><td>The heat model and its estimator, written as MATLAB-style files. Octave is the free program that runs MATLAB files.</td></tr><tr><td><b>Scilab 2027.0.0</b></td><td><b>scilab.org</b> → Download → Windows 64-bit installer for 2027.0.0.</td><td>Xcos, the block-diagram tool inside Scilab. It is the free tool like Simulink.</td></tr><tr><td>Nothing</td><td>—</td><td>The demonstration dashboard. It runs from the project folder and opens in your normal web browser (Edge or Chrome).</td></tr></tbody></table>
 <div class="note"><b>First start of KiCad.</b> The first time KiCad opens, it may ask how to set up the symbol and footprint libraries. Choose the first, default option (<i>Copy default global ... library table</i>) and click OK. This happens only once.</div>
 </section>
 
@@ -217,7 +217,7 @@ blocks joined by arrows. A scope block draws the result.</p>
 <p>The heat model of one cell as blocks: 1 W of heat starts in the core at 10 s, the air is at 25 °C, and the
 simulation runs for one hour. The scope shows the core and the surface temperatures. It is the same model as the
 KiCad thermal-model sheet and Octave's thermal_step.</p>
-<p><b>Point at:</b> <span class="fill">[[XCOS-A]]</span></p>
+<p><b>Point at:</b> after one hour, the core is at 54.5 °C and the surface at 52.6 °C. KiCad and Octave give the same numbers, within 0.004 °C. Three different tools agree.</p>
 <div class="say"><b>Say:</b> Here the same heat model is built from blocks, as engineers do in Simulink. The heat goes in on the left, the model is in the middle, and the scope shows the temperatures.</div>
 <h3>Model 2: abnormal_heat_detection.zcos</h3>
 <p>One cell carries 3 A. Its normal Joule heat (I²R) is known. At 10 minutes, 1 W of extra, unknown heat starts:
@@ -229,7 +229,7 @@ architecture's trip level);</li>
 <li><b>Fixed-limit trip</b>: when the surface temperature reaches 55 °C.</li>
 </ul>
 <p>The scopes show the temperatures, the estimated against the true abnormal heat, and the two trip signals.</p>
-<p><b>Point at:</b> <span class="fill">[[XCOS-B]]</span></p>
+<p><b>Point at:</b> the scope window has three graphs. Top: the true core (red), the surface (blue) and the estimated core (black). Middle: the true abnormal heat (green) and its estimate (red). Bottom: the predictive trip (black) and the fixed-limit trip (green); 1 means tripped. The predictive trip comes 117 s (about 2 minutes) after the fault starts, with the surface at only 30.9 °C. The fixed 55 °C limit trips 32 minutes after the fault starts.</p>
 <div class="say"><b>Say:</b> The observer sees only the surface temperature, like the real NTC sensor. It works out how much heat is not explained by the current. The predictive trip comes long before the fixed 55 °C limit.</div>
 </section>
 
@@ -251,7 +251,7 @@ open. Then you only switch windows (<b>Alt + Tab</b>).</p>
 <section>
 <h2>9. The day before: checklist</h2>
 <ul>
-<li>☐ KiCad 10, GNU Octave 10.3.0 and Scilab 2026.0.1 are installed. Each one has been opened once (KiCad's library
+<li>☐ KiCad 10, GNU Octave 10.3.0 and Scilab 2027.0.0 are installed. Each one has been opened once (KiCad's library
 question is answered).</li>
 <li>☐ The zip is unblocked and extracted to a short folder, for example <span class="key">C:\PredictiveBMS</span> (not
 inside OneDrive).</li>

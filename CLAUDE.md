@@ -33,7 +33,10 @@ designed: the prototype is modules on perfboard.
   Firmware changes must build without warnings. After a change to `kicad/`, run
   `python3 kicad/make_schematics.py` and `python3 kicad/run_sims.py`, and keep KiCad's ERC at zero
   violations. After a change to the observer (`thermal.*`) or to `matlab/`, run `crosscheck` in
-  Octave (`matlab/README.md`); the Octave copy must still agree with the firmware.
+  Octave (`matlab/README.md`); the Octave copy must still agree with the firmware. After a change
+  to `scilab/`, run `make_models.sce`, `check_models.sce`, `render_pictures.sce` and
+  `make_charts.py` (`scilab/README.md`). The student documents (`docs/student/`) are rebuilt with
+  `python3 docs/student/make_student_docs.py` after any change to the numbers they quote.
 - **Git:** commit to `main`. Messages are short and plain (`firmware: ...`, `docs: ...`). Every
   commit ends with the trailer
   `Co-authored-by: muskan sultana <335379570+sultanamuskan@users.noreply.github.com>`. **No
@@ -45,7 +48,8 @@ designed: the prototype is modules on perfboard.
 - **This computer:** no sudo, apt or system-wide installs. ESP-IDF lives in `.tools/`, ngspice and
   GNU Octave in `.tools/sim/` (micromamba; start Octave with `micromamba run -p .tools/sim octave`),
   and Python packages in `.venv/`, all git-ignored. KiCad 10 is the user's Flatpak
-  (`flatpak run --command=kicad-cli org.kicad.KiCad`). Anything else: write the command and the
+  (`flatpak run --command=kicad-cli org.kicad.KiCad`), and so is Scilab
+  (`flatpak run --command=scilab-cli org.scilab.Scilab`). Anything else: write the command and the
   reason, and ask.
 - **Writing:** every tracked file (documents, comments, commit messages, generated output) is
   written as the developer speaking to the users: never as an AI, never addressed to the
@@ -71,3 +75,5 @@ designed: the prototype is modules on perfboard.
 | `docs/build-guide/` | `boards.py` (both perfboards as checked data), `figures.py`, `build_guide.py` (HTML and PDF), `snapshots.py` (browser pictures of the demonstrations) |
 | `kicad/` | KiCad 10 simulation sheets in `sim/`, written by `make_schematics.py` (with `sch.py`); `run_sims.py` exports them with kicad-cli, runs ngspice and checks the results |
 | `matlab/` | the thermal model and Kalman observer in GNU Octave / MATLAB; `crosscheck.m` compares them with the firmware on the simulator's per-sample logs (`bms_sim run NAME --csv FILE --csv-all`) |
+| `scilab/` | the Xcos models (Scilab 2027.0.0 on Windows, the Flatpak's 2026.0.1 here), written by `make_models.sce` and checked by `check_models.sce` |
+| `docs/student/` | the presentation guide and the viva notes for the student, in simple English, built by `make_student_docs.py` |
