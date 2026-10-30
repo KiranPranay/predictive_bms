@@ -31,9 +31,12 @@ designed: the prototype is modules on perfboard.
   (`python3 docs/build-guide/build_guide.py`) and look at the pages before committing
   (ESP-IDF environment: `export IDF_TOOLS_PATH=$PWD/.tools/espressif && . .tools/esp-idf/export.sh`).
   Firmware changes must build without warnings.
-- **Git:** commit to `main`. Messages are short and plain (`firmware: ...`, `docs: ...`). **No
+- **Git:** commit to `main`. Messages are short and plain (`firmware: ...`, `docs: ...`). Every
+  commit ends with the trailer
+  `Co-authored-by: muskan sultana <335379570+sultanamuskan@users.noreply.github.com>`. **No
   `Co-Authored-By: Claude` line or any other AI attribution** in commits or pull requests
-  (organisation policy). There is no remote yet; ask before creating one or pushing.
+  (organisation policy). The remote is `origin`, `git@github.com:KiranPranay/predictive_bms.git`
+  (public); ask before pushing.
 - **Keep out of git:** company documents (such as the purchase indent), other students' documents
   or names, and copyrighted papers (such as the base paper's PDF).
 - **This computer:** no sudo, apt or system-wide installs. ESP-IDF lives in `.tools/` and Python
