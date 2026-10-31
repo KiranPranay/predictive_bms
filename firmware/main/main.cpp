@@ -7,6 +7,7 @@
 //    because nothing safe depends on them.
 
 #include "ads1115.h"
+#include "acs712.h"
 #include "board.h"
 #include "console.h"
 #include "driver/i2c_master.h"
@@ -64,8 +65,10 @@ extern "C" void app_main(void) {
   if (ads1115::init(bus, CONFIG_BMS_ADS1115_ADDR, CONFIG_BMS_I2C_HZ) != ESP_OK)
     ESP_LOGE(kTag, "ADS1115 not added");
   if (ina226::init(bus, CONFIG_BMS_INA226_ADDR, CONFIG_BMS_I2C_HZ) != ESP_OK)
-    ESP_LOGE(kTag, "INA226 not added");
+    ESP_LOGW(kTag, "INA226 not detected on I2C (ACS712 will be used)");
   if (ntc_adc::init() != ESP_OK) ESP_LOGE(kTag, "NTC ADC not ready");
+  if (acs712::init(ntc_adc::adc1_handle(), board::kAcs712Channel) != ESP_OK)
+    ESP_LOGE(kTag, "ACS712 not ready");
 
   const esp_reset_reason_t why = esp_reset_reason();
   const char* abnormal = abnormal_reset(why);

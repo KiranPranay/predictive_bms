@@ -20,6 +20,8 @@ logs/
 
 # Notes for the developer
 notes/
+sample_ppt/
+docs/build-guide/sample_ppt/
 
 # KiCad's per-user files, made when a project is opened
 *.kicad_prl

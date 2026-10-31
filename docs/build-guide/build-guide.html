@@ -253,6 +253,26 @@ down the board: GND at column 15 and 3V3 at column 17.</p>
 through a thin wire and bypass the hardware BMS's switch.</div>
 </section>
 <section>
+<h3>Board A: Pin-to-pin wiring list (schematic connections)</h3>
+<p>If you did not use the exact hole coordinates of the drawing, use this list. Every pin listed in a row connects to the other pins in that same row:</p>
+<table class=""><thead><tr><th>Net</th><th>Pins to join together</th><th>Function</th></tr></thead><tbody>
+<tr><td><span class="net" style="color:#d03b3b">3V3</span></td><td><b>D1</b> pin K (clamp (TBD)) · <b>D2</b> pin K (clamp (TBD)) · <b>D3</b> pin K (clamp (TBD)) · <b>D4</b> pin K (clamp (TBD)) · <b>ADS1115</b> VDD · <b>Board link J3</b> pin 3V3</td><td>3.3 V logic &amp; sensor supply bus</td></tr>
+<tr><td><span class="net" style="color:#1b9e77">A0</span></td><td><b>R5</b> pin 2 (10k) · <b>C1</b> pin 1 (100n) · <b>D1</b> pin A (clamp (TBD)) · <b>ADS1115</b> A0</td><td>Filtered channel 1 voltage to ADS1115 input A0</td></tr>
+<tr><td><span class="net" style="color:#1b9e77">A1</span></td><td><b>R6</b> pin 2 (10k) · <b>C2</b> pin 1 (100n) · <b>D2</b> pin A (clamp (TBD)) · <b>ADS1115</b> A1</td><td>Filtered channel 2 voltage to ADS1115 input A1</td></tr>
+<tr><td><span class="net" style="color:#1b9e77">A2</span></td><td><b>R7</b> pin 2 (10k) · <b>C3</b> pin 1 (100n) · <b>D3</b> pin A (clamp (TBD)) · <b>ADS1115</b> A2</td><td>Filtered channel 3 voltage to ADS1115 input A2</td></tr>
+<tr><td><span class="net" style="color:#1b9e77">A3</span></td><td><b>R8</b> pin 2 (10k) · <b>C4</b> pin 1 (100n) · <b>D4</b> pin A (clamp (TBD)) · <b>ADS1115</b> A3</td><td>Filtered channel 4 voltage to ADS1115 input A3</td></tr>
+<tr><td><span class="net" style="color:#6a3fd0">B+</span></td><td><b>Tap connector J1</b> pin B+ · <b>R4</b> pin 1 (330k)</td><td>Cell 4 top tap from pack (+16.8 V max) to 330 kΩ divider</td></tr>
+<tr><td><span class="net" style="color:#6a3fd0">B1</span></td><td><b>Tap connector J1</b> pin B1 · <b>R1</b> pin 1 (330k)</td><td>Cell 1 tap from pack (+4.2 V max) to 330 kΩ divider</td></tr>
+<tr><td><span class="net" style="color:#6a3fd0">B2</span></td><td><b>Tap connector J1</b> pin B2 · <b>R2</b> pin 1 (330k)</td><td>Cell 2 tap from pack (+8.4 V max) to 330 kΩ divider</td></tr>
+<tr><td><span class="net" style="color:#6a3fd0">B3</span></td><td><b>Tap connector J1</b> pin B3 · <b>R3</b> pin 1 (330k)</td><td>Cell 3 tap from pack (+12.6 V max) to 330 kΩ divider</td></tr>
+<tr><td><span class="net" style="color:#2b2b2b">GND</span></td><td><b>R9</b> pin 2 (56k) · <b>C1</b> pin 2 (100n) · <b>R10</b> pin 2 (56k) · <b>C2</b> pin 2 (100n) · <b>R11</b> pin 2 (56k) · <b>C3</b> pin 2 (100n) · <b>R12</b> pin 2 (56k) · <b>C4</b> pin 2 (100n) · <b>ADS1115</b> GND · <b>ADS1115</b> ADDR · <b>Board link J3</b> pin GND</td><td>Electronics ground bus (P−)</td></tr>
+<tr><td><span class="net" style="color:#9c7fe0">N1</span></td><td><b>R1</b> pin 2 (330k) · <b>R5</b> pin 1 (10k) · <b>R9</b> pin 1 (56k)</td><td>Channel 1 divider junction (330k, 56k to GND, 10k series)</td></tr>
+<tr><td><span class="net" style="color:#9c7fe0">N2</span></td><td><b>R2</b> pin 2 (330k) · <b>R6</b> pin 1 (10k) · <b>R10</b> pin 1 (56k)</td><td>Channel 2 divider junction (330k, 56k to GND, 10k series)</td></tr>
+<tr><td><span class="net" style="color:#9c7fe0">N3</span></td><td><b>R3</b> pin 2 (330k) · <b>R7</b> pin 1 (10k) · <b>R11</b> pin 1 (56k)</td><td>Channel 3 divider junction (330k, 56k to GND, 10k series)</td></tr>
+<tr><td><span class="net" style="color:#9c7fe0">N4</span></td><td><b>R4</b> pin 2 (330k) · <b>R8</b> pin 1 (10k) · <b>R12</b> pin 1 (56k)</td><td>Channel 4 divider junction (330k, 56k to GND, 10k series)</td></tr>
+<tr><td><span class="net" style="color:#b07d00">SCL</span></td><td><b>ADS1115</b> SCL · <b>Board link J3</b> pin SCL</td><td>I2C clock line (ESP32 GPIO22 to ADS1115 &amp; INA226)</td></tr>
+<tr><td><span class="net" style="color:#2a78d6">SDA</span></td><td><b>ADS1115</b> SDA · <b>Board link J3</b> pin SDA</td><td>I2C data line (ESP32 GPIO21 to ADS1115 &amp; INA226)</td></tr>
+</tbody></table>
 <h3>Board A: placement</h3>
 <table class=""><thead><tr><th>Ref</th><th>Part</th><th>Pins and holes (c, r)</th><th>Note</th></tr></thead><tbody>
 <tr><td><b>J1</b></td><td>JST-XH 5-pin</td><td>B- (1, 3) · B1 (1, 4) · B2 (1, 5) · B3 (1, 6) · B+ (1, 7)</td><td>tap harness from the pack</td></tr>
@@ -279,7 +299,7 @@ through a thin wire and bypass the hardware BMS's switch.</div>
 <tr><td><b>J2</b></td><td>ADS1115 module</td><td>VDD (20, 4) · GND (20, 5) · SCL (20, 6) · SDA (20, 7) · ADDR (20, 8) · ALRT (20, 9) · A0 (20, 10) · A1 (20, 11) · A2 (20, 12) · A3 (20, 13)</td><td>1 x 10 female header</td></tr>
 <tr><td><b>J3</b></td><td>4-pin header</td><td>3V3 (29, 4) · GND (29, 5) · SCL (29, 6) · SDA (29, 7)</td><td>to board B, J7</td></tr>
 </tbody></table>
-<h3>Board A: wiring list</h3>
+<h3>Board A: hole coordinates wiring list</h3>
 <table class=""><thead><tr><th>#</th><th>Kind</th><th>Net</th><th>From → to</th><th>Holes / length</th></tr></thead><tbody>
 <tr><td>1</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B1</span></td><td>(1, 4) → (2, 4)</td><td>1</td></tr>
 <tr><td>2</td><td>bare</td><td><span class="net" style="color:#6a3fd0">B1</span></td><td>(3, 3) → (4, 3)</td><td>1</td></tr>
@@ -341,6 +361,27 @@ the relay and buzzer connectors and the 5 V input sit along the bottom edge.</p>
 <figure class=""><img src="figures/board-b-bottom.svg" alt="Figure 10. Board B, underside (turned over left to right)."><figcaption>Figure 10. Board B, underside (turned over left to right).</figcaption></figure>
 </section>
 <section>
+<h3>Board B: Pin-to-pin wiring list (schematic connections)</h3>
+<p>If you placed parts at different hole coordinates, wire the pins listed in each row together:</p>
+<table class=""><thead><tr><th>Net</th><th>Pins to join together</th><th>Function</th></tr></thead><tbody>
+<tr><td><span class="net" style="color:#d03b3b">3V3</span></td><td><b>ESP32</b> 3V3 · <b>R1</b> pin 1 (10k) · <b>R2</b> pin 1 (10k) · <b>R3</b> pin 1 (10k) · <b>R4</b> pin 1 (10k) · <b>R5</b> pin 1 (10k) · <b>INA226</b> VCC · <b>Board link J7</b> pin 3V3 · <b>R6</b> pin 1 (10k) · <b>R7</b> pin 1 (10k)</td><td>3.3 V logic &amp; sensor supply bus</td></tr>
+<tr><td><span class="net" style="color:#e07b00">5V</span></td><td><b>ESP32</b> VIN · <b>5V terminal J4</b> +5V · <b>Relay header J5</b> VCC · <b>Buzzer header J6</b> VCC</td><td>5.00 V supply from LM2596 (powers ESP32 VIN, relays, buzzer)</td></tr>
+<tr><td><span class="net" style="color:#6d4c41">ALARM</span></td><td><b>ESP32</b> D27 · <b>Buzzer header J6</b> I/O · <b>R8</b> pin 1 (330R)</td><td>Alarm output from ESP32 GPIO27 to buzzer and LED resistor</td></tr>
+<tr><td><span class="net" style="color:#8e24aa">CHARGE</span></td><td><b>ESP32</b> D26 · <b>Relay header J5</b> IN2 · <b>R7</b> pin 2 (10k)</td><td>K_CHARGE relay control (active LOW, pulled up to 3V3)</td></tr>
+<tr><td><span class="net" style="color:#2b2b2b">GND</span></td><td><b>ESP32</b> GND · <b>ESP32</b> GND · <b>C1</b> pin 2 (100n) · <b>J9</b> [NTC1 (cell 1)] pin G · <b>C2</b> pin 2 (100n) · <b>J10</b> [NTC2 (cell 2)] pin G · <b>C3</b> pin 2 (100n) · <b>J11</b> [NTC3 (cell 3)] pin G · <b>C4</b> pin 2 (100n) · <b>J12</b> [NTC4 (cell 4)] pin G · <b>C5</b> pin 2 (100n) · <b>J13</b> [NTC5 (air)] pin G · <b>INA226</b> GND · <b>Board link J7</b> pin GND · <b>5V terminal J4</b> GND · <b>Relay header J5</b> GND · <b>Buzzer header J6</b> GND · <b>LED1</b> pin K (red LED)</td><td>Electronics ground bus (P−)</td></tr>
+<tr><td><span class="net" style="color:#00897b">IN+</span></td><td><b>INA226</b> IN+ · <b>Shunt Kelvin J14</b> pin IN+</td><td>Current shunt positive Kelvin lead (from fuse side)</td></tr>
+<tr><td><span class="net" style="color:#00695c">IN-</span></td><td><b>INA226</b> VBS · <b>INA226</b> IN- · <b>Shunt Kelvin J14</b> pin IN-</td><td>Current shunt negative Kelvin lead &amp; INA226 bus sense (to load side)</td></tr>
+<tr><td><span class="net" style="color:#a1887f">LEDA</span></td><td><b>R8</b> pin 2 (330R) · <b>LED1</b> pin A (red LED)</td><td>Alarm current feed through 330 Ω to LED1 anode</td></tr>
+<tr><td><span class="net" style="color:#c2185b">LOAD</span></td><td><b>ESP32</b> D25 · <b>Relay header J5</b> IN1 · <b>R6</b> pin 2 (10k)</td><td>K_LOAD relay control (active LOW, pulled up to 3V3)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC1</span></td><td><b>ESP32</b> D32 · <b>R1</b> pin 2 (10k) · <b>C1</b> pin 1 (100n) · <b>J9</b> [NTC1 (cell 1)] pin T</td><td>Cell 1 NTC divider junction to ESP32 GPIO32 (ADC1_CH4)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC2</span></td><td><b>ESP32</b> D33 · <b>R2</b> pin 2 (10k) · <b>C2</b> pin 1 (100n) · <b>J10</b> [NTC2 (cell 2)] pin T</td><td>Cell 2 NTC divider junction to ESP32 GPIO33 (ADC1_CH5)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC3</span></td><td><b>ESP32</b> D34 · <b>R3</b> pin 2 (10k) · <b>C3</b> pin 1 (100n) · <b>J11</b> [NTC3 (cell 3)] pin T</td><td>Cell 3 NTC divider junction to ESP32 GPIO34 (ADC1_CH6)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC4</span></td><td><b>ESP32</b> D35 · <b>R4</b> pin 2 (10k) · <b>C4</b> pin 1 (100n) · <b>J12</b> [NTC4 (cell 4)] pin T</td><td>Cell 4 NTC divider junction to ESP32 GPIO35 (ADC1_CH7)</td></tr>
+<tr><td><span class="net" style="color:#0f8a8a">NTC5</span></td><td><b>ESP32</b> VP · <b>R5</b> pin 2 (10k) · <b>C5</b> pin 1 (100n) · <b>J13</b> [NTC5 (air)] pin T</td><td>Ambient NTC divider junction to ESP32 GPIO36 / VP (ADC1_CH0)</td></tr>
+<tr><td><span class="net" style="color:#b07d00">SCL</span></td><td><b>ESP32</b> D22 · <b>INA226</b> SCL · <b>Board link J7</b> pin SCL</td><td>I2C clock line (ESP32 GPIO22 to ADS1115 &amp; INA226)</td></tr>
+<tr><td><span class="net" style="color:#2a78d6">SDA</span></td><td><b>ESP32</b> D21 · <b>INA226</b> SDA · <b>Board link J7</b> pin SDA</td><td>I2C data line (ESP32 GPIO21 to ADS1115 &amp; INA226)</td></tr>
+</tbody></table>
+<div class="note"><b>Temporary ACS712 wiring:</b> If the INA226 module is not available, leave the 1 × 8 female header J8 and J14 empty. Connect the ACS712 module's <code>OUT</code> to ESP32 pin <b>VN (GPIO39)</b>, <code>VCC</code> to 3.3 V, <code>GND</code> to GND, and place terminals <code>IP+</code> and <code>IP−</code> in series with the pack positive after fuse F1. See section 9.1 below.</div>
 <h3>Board B: placement</h3>
 <table class=""><thead><tr><th>Ref</th><th>Part</th><th>Pins and holes (c, r)</th><th>Note</th></tr></thead><tbody>
 <tr><td><b>U1</b></td><td>ESP32 DevKit V1 (30-pin)</td><td>top row r = 2, bottom row r = 12, columns 1–15; used pins: VIN (1, 2), GND (2, 2), D27 (6, 2), D26 (7, 2), D25 (8, 2), D33 (9, 2), D32 (10, 2), D35 (11, 2), D34 (12, 2), VP (14, 2), 3V3 (1, 12), GND (2, 12), D21 (11, 12), D22 (14, 12)</td><td>2 x 15 female headers, rows 10 holes apart</td></tr>
@@ -370,7 +411,7 @@ the relay and buzzer connectors and the 5 V input sit along the bottom edge.</p>
 <tr><td><b>R8</b></td><td>330R</td><td>1 (11, 21) · 2 (15, 21)</td><td>sized for the LED</td></tr>
 <tr><td><b>LED1</b></td><td>red LED</td><td>A (16, 21) · K (17, 21)</td><td></td></tr>
 </tbody></table>
-<h3>Board B: wiring list</h3>
+<h3>Board B: hole coordinates wiring list</h3>
 <table class=""><thead><tr><th>#</th><th>Kind</th><th>Net</th><th>From → to</th><th>Holes / length</th></tr></thead><tbody>
 <tr><td>1</td><td>bare</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(1, 2) → (1, 1)</td><td>1</td></tr>
 <tr><td>2</td><td>bare</td><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>(6, 2) → (6, 1)</td><td>1</td></tr>
@@ -449,6 +490,20 @@ the relay and buzzer connectors and the 5 V input sit along the bottom edge.</p>
 <tr><td>75</td><td>insulated</td><td><span class="net" style="color:#e07b00">5V</span></td><td>(2, 18) → (7, 22)</td><td>cut 31 mm</td></tr>
 <tr><td>76</td><td>insulated</td><td><span class="net" style="color:#6d4c41">ALARM</span></td><td>(6, 1) → (11, 22)</td><td>cut 70 mm</td></tr>
 </tbody></table>
+</section>
+
+<section>
+<h3>9.1 Temporary alternative: ACS712 wiring (until INA226 arrives)</h3>
+<p>If you need to show the prototype before your INA226 module arrives, an ACS712-5A Hall-effect module can be wired as a temporary substitute. The firmware automatically detects if the INA226 is absent and reads the ACS712 on ADC1 channel 3 (GPIO39 / VN). Solder female headers J8 and J14 on Board B as normal; they stay unpopulated until the INA226 is plugged in.</p>
+<figure class=""><img src="figures/circuit-acs712.svg" alt="Figure 10a. Temporary ACS712 current sensor wiring to Board B."><figcaption>Figure 10a. Temporary ACS712 current sensor wiring to Board B.</figcaption></figure>
+<table class=""><thead><tr><th>ACS712 Terminal</th><th>Connects to</th><th>Notes</th></tr></thead><tbody>
+<tr><td>VCC</td><td>Board B 3V3 rail (or J8 pin 8)</td><td>Power from 3.3 V so analog output never exceeds 3.3 V</td></tr>
+<tr><td>GND</td><td>Board B GND rail (or J8 pin 7)</td><td>Shared electronics ground (P−)</td></tr>
+<tr><td>OUT</td><td>ESP32 pin VN (GPIO39 · ADC1_CH3)</td><td>Top row header pin 13 (c = 13, r = 2)</td></tr>
+<tr><td>IP+</td><td>Pack positive after Fuse F1</td><td>16 AWG power wire from the fuse output</td></tr>
+<tr><td>IP−</td><td>Feeder bus FUSED+</td><td>To K_LOAD and K_CHARGE relay contacts</td></tr>
+</tbody></table>
+<p><b>Reverting to INA226:</b> Disconnect the ACS712 wires, plug the INA226 module into header J8, and connect the 5 mΩ shunt Kelvin pair to J14. The firmware prefers INA226 automatically whenever it is present.</p>
 </section>
 
 <section>

@@ -606,6 +606,93 @@ def schematic_ntc_current():
     s.save("circuit-ntc-current.svg")
 
 
+def schematic_acs712():
+    s = Svg(1180, 520)
+    s.text(30, 32, "Temporary: ACS712 current sensor wiring (replaces INA226 until it arrives)", 18, weight="bold")
+    s.text(30, 52, "The ACS712 Hall sensor provides analog current sensing on ESP32 pin VN (GPIO39, ADC1_CH3). "
+           "Keep J8 and J14 headers in place on Board B so you can plug in the INA226 without reworking the board.", 12, fill=INK2)
+
+    # Power path
+    y_pwr = 140
+    s.text(40, y_pwr - 30, "Power path (in series with Pack Positive after fuse F1)", 13, weight="bold")
+    s.line(60, y_pwr, 180, y_pwr, stroke="#d03b3b", sw=5)
+    s.text(60, y_pwr - 10, "from F1 (7.5A fuse at B+)", 11, weight="bold", fill="#d03b3b")
+
+    # ACS712 Module Box
+    mx, my, mw, mh = 260, 100, 320, 260
+    box(s, mx, my, mw, mh, "ACS712 Module (5A variant)",
+        ["Hall-effect isolated sensor", "Internal conductor: ~1.2 mΩ"],
+        fill="#fdfaf3", stroke="#e07b00", title_size=13)
+
+    # Screw terminals IP+ / IP-
+    s.rect(mx - 20, y_pwr - 16, 40, 32, fill="#cfd8dc", stroke="#455a64", rx=4)
+    s.text(mx, y_pwr + 5, "IP+", 11, "middle", "bold")
+    s.line(180, y_pwr, mx - 20, y_pwr, stroke="#d03b3b", sw=5)
+
+    s.rect(mx + mw - 20, y_pwr - 16, 40, 32, fill="#cfd8dc", stroke="#455a64", rx=4)
+    s.text(mx + mw, y_pwr + 5, "IP−", 11, "middle", "bold")
+    s.line(mx + mw + 20, y_pwr, mx + mw + 140, y_pwr, stroke="#d03b3b", sw=5)
+    s.text(mx + mw + 30, y_pwr - 10, "FUSED+ (to K_LOAD & K_CHARGE)", 11, weight="bold", fill="#d03b3b")
+
+    # ACS712 3-pin connector
+    cx = mx + mw / 2
+    cy = my + mh
+    pins_acs = [("VCC", -40), ("OUT", 0), ("GND", 40)]
+    for name, offset in pins_acs:
+        px = cx + offset
+        s.circle(px, cy - 25, 5, fill="#fff", stroke=INK)
+        s.text(px, cy - 35, name, 10, "middle", "bold")
+
+    # ESP32 Box
+    ex, ey, ew, eh = 720, 160, 380, 260
+    box(s, ex, ey, ew, eh, "ESP32 DevKit (Board B)", [], fill="#eef4fb", stroke="#2a78d6", title_size=13)
+    s.text(ex + 20, ey + 40, "Top row header (r = 2 on Board B):", 11, fill=INK2)
+
+    # ESP32 VN pin
+    vn_x, vn_y = ex, ey + 80
+    s.line(vn_x - 30, vn_y, vn_x, vn_y, stroke="#0f8a8a", sw=2.5)
+    s.circle(vn_x - 30, vn_y, 4, fill="#0f8a8a")
+    s.text(vn_x + 10, vn_y + 4, "VN / GPIO39 (ADC1_CH3)", 11, weight="bold", fill="#0f8a8a")
+    s.text(vn_x + 10, vn_y + 20, "pin 13 on top row header (c = 13, r = 2)", 9.5, fill=INK2)
+
+    # 3V3 and GND pins
+    p3v3_y = ey + 140
+    s.line(vn_x - 30, p3v3_y, vn_x, p3v3_y, stroke="#d03b3b", sw=2)
+    s.text(vn_x + 10, p3v3_y + 4, "3V3 (or Board B 3V3 rail)", 11, weight="bold", fill="#d03b3b")
+
+    gnd_y = ey + 190
+    s.line(vn_x - 30, gnd_y, vn_x, gnd_y, stroke="#2b2b2b", sw=2)
+    s.text(vn_x + 10, gnd_y + 4, "GND (or Board B GND rail)", 11, weight="bold", fill="#2b2b2b")
+
+    # Wiring lines from ACS712 to ESP32
+    # OUT to VN
+    s.line(cx, cy - 20, cx, cy + 20, stroke="#0f8a8a", sw=2.5)
+    s.line(cx, cy + 20, ex - 120, cy + 20, stroke="#0f8a8a", sw=2.5)
+    s.line(ex - 120, cy + 20, ex - 120, vn_y, stroke="#0f8a8a", sw=2.5)
+    s.line(ex - 120, vn_y, vn_x - 30, vn_y, stroke="#0f8a8a", sw=2.5)
+    s.text(ex - 130, cy + 12, "OUT (analog voltage)", 10.5, "end", "bold", fill="#0f8a8a")
+
+    # VCC to 3V3
+    s.line(cx - 40, cy - 20, cx - 40, cy + 50, stroke="#d03b3b", sw=2)
+    s.line(cx - 40, cy + 50, ex - 80, cy + 50, stroke="#d03b3b", sw=2)
+    s.line(ex - 80, cy + 50, ex - 80, p3v3_y, stroke="#d03b3b", sw=2)
+    s.line(ex - 80, p3v3_y, vn_x - 30, p3v3_y, stroke="#d03b3b", sw=2)
+
+    # GND to GND
+    s.line(cx + 40, cy - 20, cx + 40, cy + 70, stroke="#2b2b2b", sw=2)
+    s.line(cx + 40, cy + 70, ex - 50, cy + 70, stroke="#2b2b2b", sw=2)
+    s.line(ex - 50, cy + 70, ex - 50, gnd_y, stroke="#2b2b2b", sw=2)
+    s.line(ex - 50, gnd_y, vn_x - 30, gnd_y, stroke="#2b2b2b", sw=2)
+
+    # Notes at bottom
+    s.text(40, 440, "Important notes for temporary ACS712 use:", 12, weight="bold")
+    s.text(40, 460, "1. Power from 3.3 V (not 5 V): keeping VCC at 3.3 V ensures the ACS712 output stays safe for the ESP32 ADC (0-3.3 V max).", 11, fill=INK2)
+    s.text(40, 480, "2. No external 5 mΩ shunt needed: the ACS712 has its own internal conductor carrying the pack current.", 11, fill=INK2)
+    s.text(40, 500, "3. When INA226 arrives: remove ACS712, plug INA226 into J8, reconnect the 5 mΩ shunt Kelvin pair to J14. No board rewiring needed.", 11, fill=INK2)
+
+    s.save("circuit-acs712.svg")
+
+
 def schematic_control():
     s = Svg(1180, 700)
     s.text(30, 32, "Circuit: ESP32 control, relays and alarm (board B, architecture section 7)", 18, weight="bold")
@@ -915,6 +1002,7 @@ def all_figures():
     schematic_taps()
     schematic_ntc_current()
     schematic_control()
+    schematic_acs712()
     wiring_overview()
     enclosure()
     module_pinouts()

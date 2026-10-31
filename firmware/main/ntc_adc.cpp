@@ -66,4 +66,8 @@ void read(bool ok[5], float mv[5], uint32_t code[5]) {
   }
 }
 
+adc_oneshot_unit_handle_t adc1_handle() {
+  return unit;
+}
+
 }  // namespace ntc_adc

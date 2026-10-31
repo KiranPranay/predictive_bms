@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <memory>
 
+#include "acs712.h"
 #include "ads1115.h"
 #include "bms/supervisor.h"
 #include "esp_log.h"
@@ -151,6 +152,10 @@ void task(void*) {
     raw.t_s = now_us * 1e-6;
     raw.ads_ok = ads1115::read_all(raw.ads_v);
     raw.ina_ok = ina226::read(raw.shunt_v, raw.bus_v);
+    if (!raw.ina_ok) {
+      // Temporary fallback: ACS712 on ADC1 when INA226 is not available
+      raw.ina_ok = acs712::read(raw.shunt_v, raw.bus_v);
+    }
     ntc_adc::read(raw.ntc_ok, raw.ntc_mv, raw.ntc_code);
 
 #if CONFIG_BMS_BENCH_SIM

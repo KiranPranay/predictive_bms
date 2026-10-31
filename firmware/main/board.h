@@ -32,4 +32,7 @@ constexpr adc_channel_t kNtcChannel[5] = {
 };
 constexpr int kNtcSamples = 16;   // conversions summed per reading
 
+// Temporary: ACS712 analog input on ADC1 (GPIO39 / VN)
+constexpr adc_channel_t kAcs712Channel = ADC_CHANNEL_3;
+
 }  // namespace board

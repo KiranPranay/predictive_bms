@@ -97,6 +97,82 @@ def continuity_rows(board):
     return rows
 
 
+def pin_to_pin_rows(board):
+    """Pin-to-pin connections by net: wire these together regardless of perfboard coordinates."""
+    def pin_desc(p, label):
+        ref = p["ref"]
+        kind = p["kind"]
+        val = p["value"]
+        if kind == "esp32":
+            return f"<b>ESP32</b> {E(label)}"
+        elif ref == "J2":
+            return f"<b>ADS1115</b> {E(label)}"
+        elif ref == "J8":
+            return f"<b>INA226</b> {E(label)}"
+        elif ref == "J5":
+            return f"<b>Relay header J5</b> {E(label)}"
+        elif ref == "J6":
+            return f"<b>Buzzer header J6</b> {E(label)}"
+        elif ref == "J4":
+            return f"<b>5V terminal J4</b> {E(label)}"
+        elif ref.startswith("J") and len(ref) > 1 and ref[1:].isdigit() and 9 <= int(ref[1:]) <= 13:
+            sensor = f"NTC{int(ref[1:]) - 8}" + (" (air)" if ref == "J13" else f" (cell {int(ref[1:]) - 8})")
+            return f"<b>{ref}</b> [{sensor}] pin {E(label)}"
+        elif ref == "J1":
+            return f"<b>Tap connector J1</b> pin {E(label)}"
+        elif ref in ("J3", "J7"):
+            return f"<b>Board link {ref}</b> pin {E(label)}"
+        elif ref == "J14":
+            return f"<b>Shunt Kelvin J14</b> pin {E(label)}"
+        elif kind in ("res", "cap", "led", "diode"):
+            return f"<b>{E(ref)}</b> pin {E(label)} ({E(val)})"
+        return f"<b>{E(ref)}</b> {E(label)}"
+
+    net_desc = {
+        "3V3": "3.3 V logic & sensor supply bus",
+        "5V": "5.00 V supply from LM2596 (powers ESP32 VIN, relays, buzzer)",
+        "GND": "Electronics ground bus (P−)",
+        "SDA": "I2C data line (ESP32 GPIO21 to ADS1115 & INA226)",
+        "SCL": "I2C clock line (ESP32 GPIO22 to ADS1115 & INA226)",
+        "NTC1": "Cell 1 NTC divider junction to ESP32 GPIO32 (ADC1_CH4)",
+        "NTC2": "Cell 2 NTC divider junction to ESP32 GPIO33 (ADC1_CH5)",
+        "NTC3": "Cell 3 NTC divider junction to ESP32 GPIO34 (ADC1_CH6)",
+        "NTC4": "Cell 4 NTC divider junction to ESP32 GPIO35 (ADC1_CH7)",
+        "NTC5": "Ambient NTC divider junction to ESP32 GPIO36 / VP (ADC1_CH0)",
+        "LOAD": "K_LOAD relay control (active LOW, pulled up to 3V3)",
+        "CHARGE": "K_CHARGE relay control (active LOW, pulled up to 3V3)",
+        "ALARM": "Alarm output from ESP32 GPIO27 to buzzer and LED resistor",
+        "LEDA": "Alarm current feed through 330 Ω to LED1 anode",
+        "IN+": "Current shunt positive Kelvin lead (from fuse side)",
+        "IN-": "Current shunt negative Kelvin lead & INA226 bus sense (to load side)",
+        "B1": "Cell 1 tap from pack (+4.2 V max) to 330 kΩ divider",
+        "B2": "Cell 2 tap from pack (+8.4 V max) to 330 kΩ divider",
+        "B3": "Cell 3 tap from pack (+12.6 V max) to 330 kΩ divider",
+        "B+": "Cell 4 top tap from pack (+16.8 V max) to 330 kΩ divider",
+        "N1": "Channel 1 divider junction (330k, 56k to GND, 10k series)",
+        "N2": "Channel 2 divider junction (330k, 56k to GND, 10k series)",
+        "N3": "Channel 3 divider junction (330k, 56k to GND, 10k series)",
+        "N4": "Channel 4 divider junction (330k, 56k to GND, 10k series)",
+        "A0": "Filtered channel 1 voltage to ADS1115 input A0",
+        "A1": "Filtered channel 2 voltage to ADS1115 input A1",
+        "A2": "Filtered channel 3 voltage to ADS1115 input A2",
+        "A3": "Filtered channel 4 voltage to ADS1115 input A3",
+    }
+    by_net = defaultdict(list)
+    for p, label, h, net in board.pins():
+        if net == "NC":
+            continue
+        by_net[net].append(pin_desc(p, label))
+
+    rows = []
+    for net in sorted(by_net):
+        pins = by_net[net]
+        desc = net_desc.get(net, "")
+        rows.append([f'<span class="net" style="color:{figures.net_color(net)}">{E(net)}</span>',
+                     " · ".join(pins), E(desc)])
+    return rows
+
+
 def parts_count(make_boards):
     count = Counter()
     for b in make_boards:
@@ -450,9 +526,12 @@ down the board: GND at column 15 and 3V3 at column 17.</p>
 through a thin wire and bypass the hardware BMS's switch.</div>
 </section>
 <section>
+<h3>Board A: Pin-to-pin wiring list (schematic connections)</h3>
+<p>If you did not use the exact hole coordinates of the drawing, use this list. Every pin listed in a row connects to the other pins in that same row:</p>
+{table(["Net", "Pins to join together", "Function"], pin_to_pin_rows(a))}
 <h3>Board A: placement</h3>
 {table(["Ref", "Part", "Pins and holes (c, r)", "Note"], placement_rows(a))}
-<h3>Board A: wiring list</h3>
+<h3>Board A: hole coordinates wiring list</h3>
 {table(["#", "Kind", "Net", "From → to", "Holes / length"], wiring_rows(a))}
 </section>
 
@@ -467,10 +546,28 @@ the relay and buzzer connectors and the 5 V input sit along the bottom edge.</p>
 {fig("figures/board-b-bottom.svg", "Figure 10. Board B, underside (turned over left to right).")}
 </section>
 <section>
+<h3>Board B: Pin-to-pin wiring list (schematic connections)</h3>
+<p>If you placed parts at different hole coordinates, wire the pins listed in each row together:</p>
+{table(["Net", "Pins to join together", "Function"], pin_to_pin_rows(b))}
+<div class="note"><b>Temporary ACS712 wiring:</b> If the INA226 module is not available, leave the 1 × 8 female header J8 and J14 empty. Connect the ACS712 module's <code>OUT</code> to ESP32 pin <b>VN (GPIO39)</b>, <code>VCC</code> to 3.3 V, <code>GND</code> to GND, and place terminals <code>IP+</code> and <code>IP−</code> in series with the pack positive after fuse F1. See section 9.1 below.</div>
 <h3>Board B: placement</h3>
 {table(["Ref", "Part", "Pins and holes (c, r)", "Note"], placement_rows(b))}
-<h3>Board B: wiring list</h3>
+<h3>Board B: hole coordinates wiring list</h3>
 {table(["#", "Kind", "Net", "From → to", "Holes / length"], wiring_rows(b))}
+</section>
+
+<section>
+<h3>9.1 Temporary alternative: ACS712 wiring (until INA226 arrives)</h3>
+<p>If you need to show the prototype before your INA226 module arrives, an ACS712-5A Hall-effect module can be wired as a temporary substitute. The firmware automatically detects if the INA226 is absent and reads the ACS712 on ADC1 channel 3 (GPIO39 / VN). Solder female headers J8 and J14 on Board B as normal; they stay unpopulated until the INA226 is plugged in.</p>
+{fig("figures/circuit-acs712.svg", "Figure 10a. Temporary ACS712 current sensor wiring to Board B.")}
+{table(["ACS712 Terminal", "Connects to", "Notes"], [
+    ["VCC", "Board B 3V3 rail (or J8 pin 8)", "Power from 3.3 V so analog output never exceeds 3.3 V"],
+    ["GND", "Board B GND rail (or J8 pin 7)", "Shared electronics ground (P−)"],
+    ["OUT", "ESP32 pin VN (GPIO39 · ADC1_CH3)", "Top row header pin 13 (c = 13, r = 2)"],
+    ["IP+", "Pack positive after Fuse F1", "16 AWG power wire from the fuse output"],
+    ["IP−", "Feeder bus FUSED+", "To K_LOAD and K_CHARGE relay contacts"],
+])}
+<p><b>Reverting to INA226:</b> Disconnect the ACS712 wires, plug the INA226 module into header J8, and connect the 5 mΩ shunt Kelvin pair to J14. The firmware prefers INA226 automatically whenever it is present.</p>
 </section>
 
 <section>

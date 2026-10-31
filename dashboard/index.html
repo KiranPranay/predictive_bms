@@ -160,6 +160,35 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding-botto
 .blink { animation: blink 1s steps(2, start) infinite; }
 @keyframes blink { to { visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .flow.fwd, .flow.rev, .blink { animation: none; } }
+
+/* Prominent Red Status Banner */
+.banner-red {
+  background: linear-gradient(135deg, #d03b3b 0%, #a82020 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(208, 59, 59, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.banner-icon { flex: none; display: flex; align-items: center; justify-content: center; }
+.banner-body { flex: 1; }
+.banner-title { font-size: 15px; font-weight: 750; letter-spacing: 0.04em; }
+.banner-sub { font-size: 12px; opacity: 0.95; margin-top: 3px; line-height: 1.4; }
+.banner-badge {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -175,6 +204,22 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding-botto
       <button id="theme" title="Switch light or dark">Theme</button>
     </div>
   </header>
+
+  <!-- Red Status Bar: Shown prominently when battery is disconnected or current/voltage not sensed -->
+  <div class="banner-red" id="disconnect-bar">
+    <div class="banner-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+    <div class="banner-body">
+      <div class="banner-title" id="disconnect-title">CURRENT / VOLTAGE IS NOT SENSED · BATTERY IS DISCONNECTED</div>
+      <div class="banner-sub" id="disconnect-desc">Hardware protection contacts (K_LOAD &amp; K_CHARGE) held OPEN by fail-safe pull-ups. 5 Hz predictive supervisor loop active.</div>
+    </div>
+    <div class="banner-badge">RELAYS HELD OPEN</div>
+  </div>
 
   <!-- Simulation only: guided demonstrations -->
   <section class="card simcard" id="demo-card" hidden>
@@ -562,8 +607,32 @@ function render(s) {
   al.className = "badge" + (s.alarm === "trip" ? " st-3" : s.alarm === "warning" ? " st-2" : "");
   al.textContent = "alarm " + s.alarm;
 
-  $("p-v").innerHTML = fmt(s.pack.v, 3) + "<small> V</small>";   // null until the taps have read once
-  $("p-i").innerHTML = fmt(s.pack.i, 3) + "<small> A</small>";
+  // Prominent Red Status Bar
+  const discBar = $("disconnect-bar");
+  const noPack = (s.pack.v == null || s.pack.v < 1.0);
+  const noCurrent = (s.sensors && s.sensors.current !== "ok");
+  const noTaps = (s.sensors && s.sensors.taps !== "ok");
+  const relaysOpen = (!s.relays.load && !s.relays.charge);
+  const isDisconnected = noPack || noTaps || noCurrent || relaysOpen;
+
+  if (isDisconnected) {
+    discBar.hidden = false;
+    let parts = [];
+    if (noTaps || noPack) parts.push("VOLTAGE");
+    if (noCurrent) parts.push("CURRENT");
+    const sensedText = parts.length ? parts.join(" & ") + " NOT SENSED" : "CURRENT & VOLTAGE NOT SENSED";
+    $("disconnect-title").textContent = `CURRENT / VOLTAGE IS NOT SENSED · BATTERY IS DISCONNECTED`;
+    $("disconnect-desc").textContent = "Hardware power path relays (K_LOAD & K_CHARGE) are held OPEN by fail-safe pull-ups. 5 Hz predictive supervisor active.";
+  } else {
+    discBar.hidden = true;
+  }
+
+  $("p-v").innerHTML = (s.pack.v == null || s.pack.v < 1.0)
+    ? '<span class="bad-text">Not Sensed</span>'
+    : fmt(s.pack.v, 3) + "<small> V</small>";
+  $("p-i").innerHTML = (s.sensors && s.sensors.current !== "ok" && Math.abs(s.pack.i) < 0.005)
+    ? '<span class="bad-text">Not Sensed</span>'
+    : fmt(s.pack.i, 3) + "<small> A</small>";
   $("p-p").innerHTML = fmt(s.pack.p, 1) + "<small> W</small>";
   $("p-amb").innerHTML = fmt(s.pack.t_amb, 1) + "<small> °C</small>";
   $("p-safe").innerHTML = fmt(s.pack.i_safe, 2) + `<small> A at ${s.pack.t_trip} °C</small>`;
@@ -584,7 +653,7 @@ function render(s) {
   s.cells.forEach((c, i) => {
     const k = cards[i];
     riskBadge(k.querySelector('[data-k="lvl"]'), c.level);
-    put(k, "v", fmt(c.v, 4, " V"));
+    put(k, "v", (c.v == null || noPack) ? '<span class="muted">Not Sensed</span>' : fmt(c.v, 4, " V"));
     put(k, "r", `${fmt(c.r_avg_mohm, 1)} · ${fmt(c.r_mohm, 1)} mΩ <span class="muted">(${c.r_steps} steps)</span>`);
     put(k, "ts", fmt(c.t_s, 2, " °C"));
     put(k, "tc", fmt(c.t_c, 2, " °C"));

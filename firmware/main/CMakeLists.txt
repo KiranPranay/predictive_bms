@@ -1,5 +1,6 @@
 idf_component_register(
   SRCS
+    acs712.cpp
     ads1115.cpp
     console.cpp
     ina226.cpp
